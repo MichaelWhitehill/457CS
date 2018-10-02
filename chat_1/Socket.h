@@ -1,67 +1,62 @@
 #pragma once
 
 #include <sys/socket.h>
-#include <netinet/in.h> 
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <strings.h>
-#include <string> 
-#include <tuple> 
+#include <string>
+#include <tuple>
 #include <unistd.h>
-#include <map> 
+#include <map>
 #include <assert.h>
-#include <vector> 
+#include <vector>
 
 namespace cs457
 {
-    using namespace std; 
+    using namespace std;
 
     //https://stackoverflow.com/questions/3407012/c-rounding-up-to-the-nearest-multiple-of-a-number
-    int roundUpMultipleOfTwo(int numToRound, int multiple) 
+    int roundUpMultipleOfTwo(int numToRound, int multiple)
     {
-        //positive only 
+        //positive only
           assert(multiple && ((multiple & (multiple - 1)) == 0));
           return (numToRound + multiple - 1) & -multiple;
     }
-    
     class tcpUserSocket
     {
         public:
             tcpUserSocket()
             {
-               
             };
-            void setSocket(int socket){ userSocket=socket;}; 
-            struct sock_addr * getAddressPointer(){return ((struct sock_addr *) &userAddress);}; 
+            void setSocket(int socket){ userSocket=socket;};
+            struct sock_addr * getAddressPointer(){return ((struct sock_addr *) &userAddress);};
             socklen_t getLenghtPointer()
             {
-                socklen_t len = sizeof(userAddress);  
+                socklen_t len = sizeof(userAddress);
                 return len;
             };
-            int getSocket(){return userSocket;}; 
-            int closeSocket(){return close(userSocket);}; 
+            int getSocket(){return userSocket;};
+            int closeSocket(){return close(userSocket);};
             std::tuple<string,ssize_t> recvString(int bufferSize=1024)
             {
-                char stringBuffer[bufferSize]; 
-                ssize_t recvMsgSize = recv(userSocket, stringBuffer, bufferSize, 0); 
-                return make_tuple(string(stringBuffer),recvMsgSize);     
+                char stringBuffer[bufferSize];
+                ssize_t recvMsgSize = recv(userSocket, stringBuffer, bufferSize, 0);
+                return make_tuple(string(stringBuffer),recvMsgSize);
             };
-        
 
             ssize_t sendString(const string & data)
             {
                 //https://stackoverflow.com/questions/7352099/stdstring-to-char
-                if (data.size() == 0) return 0;                 
-                int bufferSize = data.size()+1; 
+                if (data.size() == 0) return 0;
+                int bufferSize = data.size()+1;
                 vector<char> stringBuffer(data.c_str(), data.c_str() + data.size() + 1u);
                 return send(userSocket, &stringBuffer[0], bufferSize, 0);
             }
             string getUniqueIdentifier(){ return "modifythislater";};
 
-
-
         private:
-        struct sockaddr_in userAddress; 
-        int userSocket; 
+        struct sockaddr_in userAddress;
+        int userSocket;
     };
 
     class tcpServerSocket
@@ -71,17 +66,17 @@ namespace cs457
 
         tcpServerSocket(uint portNumber): port(portNumber), address("")
         {
-           init(); 
+           init();
            setSocketOptions();
-        };     
+        };
         tcpServerSocket(string networkAddress, uint portNumber): address(networkAddress), port(portNumber)
         {
-           init(); 
+           init();
            setSocketOptions();
         };
         int bindSocket()
         {
-            return bind(serverSocket,(struct sockaddr *)&serverAddress,sizeof(serverAddress));    
+            return bind(serverSocket,(struct sockaddr *)&serverAddress,sizeof(serverAddress));
         }
         int listenSocket()
         {
@@ -89,17 +84,17 @@ namespace cs457
         }
         tuple<tcpUserSocket,int> acceptSocket()
         {
-            cs457::tcpUserSocket userSocket; 
+            cs457::tcpUserSocket userSocket;
             socklen_t len = userSocket.getLenghtPointer();
             int client_fd = accept(serverSocket,(struct sockaddr *)userSocket.getAddressPointer(),&len);
-            userSocket.setSocket(client_fd); 
-            return make_tuple(userSocket,client_fd); 
+            userSocket.setSocket(client_fd);
+            return make_tuple(userSocket,client_fd);
         }
-    private: 
+    private:
         void init()
         {
             const char * cstr = address.c_str();
-            int val =0;  
+            int val =0;
             bzero(&serverAddress,sizeof(serverAddress));
             serverAddress.sin_family = AF_INET;
             if (address == "")
@@ -109,23 +104,23 @@ namespace cs457
                 val = inet_aton(cstr,&addr);
                 serverAddress.sin_addr = addr;
                 string addresscpy(inet_ntoa(addr));
-                address = addresscpy;  
+                address = addresscpy;
             }
-       
+
             serverAddress.sin_port = htons(port);
         }
 
         void setSocketOptions()
         {
           int optval = 1;
-          setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, 
+          setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR,
 	                (const void *)&optval , sizeof(int));
         }
-        uint port; 
-        string address; 
+        uint port;
+        string address;
         //
         int serverSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
-        struct sockaddr_in serverAddress; 
+        struct sockaddr_in serverAddress;
         struct in_addr addr;
         /* Internet address */
         struct in_addr{
@@ -153,10 +148,9 @@ namespace cs457
             tcpUserManager(){};
             void addUserSocket(tcpUserSocket & userSocket)
             {
-                 users[userSocket.getUniqueIdentifier()] = userSocket; 
+                 users[userSocket.getUniqueIdentifier()] = userSocket;
             }
-            
-        private: 
+        private:
 
         std::map<string,tcpUserSocket> users;
 

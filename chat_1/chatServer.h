@@ -1,22 +1,22 @@
-#include <string> 
+#include <string>
 #include "Socket.h"
 
-using namespace std; 
+using namespace std;
 
-namespace cs457 
+namespace cs457
 {
-    class chatUser 
+    class chatUser
     {
-    public: 
+    public:
 
 
 
     private:
 
-        string nickName; 
-        string password; 
+        string nickName;
+        string password;
         //what rooms am I in now?
-    tcpUserSocket userSocket; 
+    tcpUserSocket userSocket;
 
 
 
@@ -24,7 +24,6 @@ namespace cs457
 
     class chatRooms
     {
-        
     };
 
 }
