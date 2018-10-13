@@ -1,4 +1,0 @@
-/home/michael/programs/JetBrains/Clion/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/michael/Academics/2018Fall/457cs/smak
--- Configuring done
--- Generating done
--- Build files have been written to: /home/michael/Academics/2018Fall/457cs/smak/cmake-build-debug
