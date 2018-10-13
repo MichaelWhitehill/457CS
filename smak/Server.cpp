@@ -11,7 +11,7 @@
 #include <netinet/in.h>
 #include <iostream>
 #include "Server.h"
-
+#include "Session.h"
 
 
 int Server::serverMain (int argc, char** argv){
@@ -45,13 +45,11 @@ int Server::serverMain (int argc, char** argv){
                        &cliLength);
     if (newSockFd < 0)
         Server::error("ERROR on accept");
-    bzero(buffer,256);
-    errNo = read(newSockFd,buffer,255);
-    if (errNo < 0) Server::error("ERROR reading from socket");
-    printf("Here is the message: %s\n",buffer);
-    errNo = write(newSockFd,"I got your message",18);
-    if (errNo < 0) Server::error("ERROR writing to socket");
-    close(newSockFd);
+    std::cout << "Accepted connection\n";
+
+    // Make session here
+    Session ses = Session(serv_addr, buffer, 255, newSockFd);
+    ses.listenForAndPrint("EXIT\n");
     close(sockFd);
     return 0;
 }

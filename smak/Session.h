@@ -12,11 +12,12 @@
 class Session {
 public:
     static int sessionCount;
-    Session(struct sockaddr_in serv_addr, char buffer[], size_t bufferLength);
+    Session(struct sockaddr_in serv_addr, char buffer[], size_t bufferLength, int sockFd);
     int listenForAndPrint(std::string terminateMessage);
 
 private:
     struct sockaddr_in socket;
+    int socketFd;
     int instanceNum;
     char* buffer;
     size_t bufferLength;
