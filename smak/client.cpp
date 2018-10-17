@@ -3,7 +3,7 @@
 //
 
 #include "client.h"
-#include "Server.h"
+#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -25,7 +25,7 @@ int client::clientMain(int argc, char *argv[])
     int portNo = atoi(argv[2]);
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
-        Server::error("ERROR opening socket");
+        error("ERROR opening socket");
     struct hostent *server;
     server = gethostbyname(argv[1]);
     if (server == nullptr) {
@@ -40,7 +40,7 @@ int client::clientMain(int argc, char *argv[])
           server->h_length);
     serv_addr.sin_port = htons(static_cast<uint16_t>(portNo));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-        Server::error("ERROR connecting");
+        error("ERROR connecting");
     // now we'll let you enter messages
     char buffer[256];
     uint bufferSize = 256;
@@ -50,11 +50,12 @@ int client::clientMain(int argc, char *argv[])
         fgets(buffer,255,stdin);
         errNo = write(sockfd,buffer,strlen(buffer));
         if (errNo < 0)
-            Server::error("ERROR writing to socket");
+            error("ERROR writing to socket");
         memset(buffer, 0, 256);
         errNo = read(sockfd,buffer,255);
         if (errNo < 0)
-            Server::error("ERROR reading from socket");
+            error("ERROR reading from socket");
+
         printf("%s\n",buffer);
         std::string recString = buffer;
         if (recString == "GOODBYE"){
@@ -62,19 +63,4 @@ int client::clientMain(int argc, char *argv[])
             return 0;
         }
     }
-
-//    printf("Please enter the message: ");
-//    char buffer[256];
-//    bzero(buffer,256);
-//    fgets(buffer,255,stdin);
-//    errNo = write(sockfd,buffer,strlen(buffer));
-//    if (errNo < 0)
-//        Server::error("ERROR writing to socket");
-//    bzero(buffer,256);
-//    errNo = read(sockfd,buffer,255);
-//    if (errNo < 0)
-//        Server::error("ERROR reading from socket");
-//    printf("%s\n",buffer);
-//    close(sockfd);
-//    return 0;
 }
