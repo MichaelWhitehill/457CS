@@ -10,7 +10,7 @@
 
 class netController {
 public:
-    netController(srvState& state);
+    netController(srvState* state);
 
     /**
      * Takes incoming network traffic and determines the function to call
@@ -19,7 +19,7 @@ public:
     void interpret(const std::string& cmd);
 
 private:
-    srvState serverState;
+    srvState* serverState;
 
     /**
      * broadcasts a message to all connected sessions

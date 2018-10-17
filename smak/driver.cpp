@@ -14,10 +14,11 @@ using namespace std;
 
 bool ready = true;
 
-int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
+int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController netCon)
 {
-
     cout << "Waiting for message from Client Thread" << id << std::endl;
+    thread childT(&cs457::tcpUserSocket::sendString,clientSocket.get(),"Army or not, you must realize you are doomed",true);
+    childT.join();
     string msg;
     ssize_t val;
     bool cont =true ;
@@ -26,14 +27,13 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
         tie(msg,val) = clientSocket.get()->recvString();
         if (msg.substr(0,4) == "EXIT")
             cont = false;
+        cout << "Server recieved: " << msg <<"| echoing back\n";
+//        thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),msg,true);
+//        childT1.join();
+        thread childT2(&cs457::tcpUserSocket::sendString,clientSocket.get(),"General konobi",true);
+        childT2.join();
+        netCon.interpret(msg);
 
-         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
-        string s =  "[SERVER REPLY] The client is sending message:" + msg  + "\n";
-
-
-        thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),s,true);
-
-        childT1.join();
         if (msg.substr(0,6) == "SERVER")
         {
             thread childTExit(&cs457::tcpUserSocket::sendString,clientSocket.get(),"GOODBYE EVERYONE",false);
@@ -65,9 +65,9 @@ int driver::driverMain(int argc, char **argv)
     mysocket.listenSocket();  //Listen for incoming client connections
     cout << "Waiting to Accept Socket" << std::endl;
     int id = 0;
-
-    srvState serverState = srvState();
-    netController netCon = netController(serverState);
+    vector<unique_ptr<thread>> threadList; //keep track of all the client threads
+    srvState serverState = srvState(&threadList);
+    netController netCon = netController(&serverState);
 
     while (ready) //Creating multiple client sockets to interact with the server
     {
@@ -78,21 +78,19 @@ int driver::driverMain(int argc, char **argv)
 
         // tuple of socket and its FD
         tie(clientSocket,val) = mysocket.acceptSocket();
-        serverState.pushBackSession(clientSocket);
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
-        unique_ptr<thread> t = make_unique<thread>(cclient,clientSocket,id);
-        serverState.pushBackThread(std::move(t));
+        serverState.pushBackSession(clientSocket);
+        unique_ptr<thread> t = make_unique<thread>(cclient,clientSocket,id, netCon);
+        threadList.push_back(std::move(t));
 
-        id++; //not the best way to go about it. 
-        // threadList.push_back(t);
-
+        id++; //not the best way to go about it.
     }
-    auto threadList = serverState.getThreads();
     for (auto& t: threadList)
     {
         t.get()->join();   //joining all of the active sockets in threadlist vector together
     }
+    std::cout<<"Joined all threads\n";
 
 
     cout << "Server is shutting down after one client" << endl;

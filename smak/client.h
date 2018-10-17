@@ -9,6 +9,8 @@
 class client {
 public:
     static int clientMain(int argc, char *argv[]);
+    static void listenAndPrint(int sockFd);
+    static void writeSock(int sockFd);
 };
 
 
