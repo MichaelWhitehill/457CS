@@ -18,50 +18,70 @@
 #include<getopt.h>
 #include<fstream>
 
-
+struct clientInfo{
+    std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
+    int port = 0;    //destination server port
+    std::ofstream logFile;   //string logFile name
+};
 
 int client::clientMain(int argc, char *argv[])
 {
 
-    if (argc < 5) {
-        std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -h hostname -u username -p server_port clt";
+    if (argc < 2) {
+        std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
         exit(0);
     }std::cout <<"[Starting Client]" << std::endl;
+
 
     //processing arguments with getOpt:
     std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
    int port = 0;    //destination server port
    std::ofstream logFile;   //string logFile name
 
-   int option;
-   while((option = getopt(argc, argv, "h:u:p:c:t:L:"))!=-1){
-       switch(option){
-           case 'h' :   hostName = optarg;
-                        std::cout <<"Client hostName: " << hostName<< std::endl;
-                        break;
-           case 'u' :   userName = optarg;
-                        std::cout <<"Client userName: " << userName<< std::endl;
-                        break;
-           case 'p' :   port = atoi(optarg);
-                        std::cout <<"Client Port: " << port<< std::endl;
-                        break;
-           case 'c' :   configFile = optarg;
-                        std::cout <<"Config File name: "<< configFile<< std::endl;
-                        break;
-           case 't' :   testFile = optarg;
-                        std::cout <<"Test File name: "<< testFile<< std::endl;
-                        break;
-           case 'L' :   {std::ofstream logFile = std::ofstream(optarg);
-                        std::cout <<"Log File has been opened under name: "<<optarg << std::endl;
-                        break;}
-           default  :   std::cerr<< "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
-                        exit(0);
+    //Run switch statement below regardless of # of args provided so that configFile is populated in either case:
+
+       int option;
+       while ((option = getopt(argc, argv, "h:u:p:c:t:L:")) != -1) {
+           switch (option) {
+               case 'h' :
+                   hostName = optarg;
+                   std::cout << "Client hostName: " << hostName << std::endl;
+                   break;
+               case 'u' :
+                   userName = optarg;
+                   std::cout << "Client userName: " << userName << std::endl;
+                   break;
+               case 'p' :
+                   port = atoi(optarg);
+                   std::cout << "Client Port: " << port << std::endl;
+                   break;
+               case 'c' :
+                   configFile = optarg;
+                   std::cout << "Config File name: " << configFile << std::endl;
+                   break;
+               case 't' :
+                   testFile = optarg;
+                   std::cout << "Test File name: " << testFile << std::endl;
+                   break;
+               case 'L' : {
+                   std::ofstream logFile = std::ofstream(optarg);
+                   std::cout << "Log File has been opened under name: " << optarg << std::endl;
+                   break;
+               }
+               default  :
+                   std::cerr
+                           << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
+                   exit(0);
+           }
        }
-   }
+
 
    if(!configFile.empty()){
        std::cout << "[Initializing Client from .config file]"<<std::endl;
-       
+       //Config file has been supplied as single arg and vars will be populated from file:
+
+
+
    }
 
 //outfile << "my text here" << std:: endl;
