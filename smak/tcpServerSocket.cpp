@@ -54,7 +54,7 @@ void cs457::tcpServerSocket::init()
     serverSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
     const char * cstr = address.c_str();
     int val =0;
-    bzero(&serverAddress,sizeof(serverAddress));
+    bzero(&serverAddress,sizeof(serverAddress)); //Setting 0's in the string of the server address
     serverAddress.sin_family = AF_INET;
     if (address == "")
         addr.s_addr =  htonl(INADDR_ANY);

@@ -54,20 +54,23 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
 int driver::driverMain(int argc, char **argv)
 {
     cout << "Initializing Socket" << std::endl;
-    cs457::tcpServerSocket mysocket(atoi(argv[1]));
+    cs457::tcpServerSocket mysocket(atoi(argv[1])); //Set up a TCP socket on port 2000 (FOR SERVER)
     cout << "Binding Socket" << std::endl;
-    mysocket.bindSocket();
+    mysocket.bindSocket();  //Bind the created SERVER socket "mysocket"
     cout << "Listening Socket" << std::endl;
-    mysocket.listenSocket();
+    mysocket.listenSocket();  //Listen for incoming client connections
     cout << "Waiting to Accept Socket" << std::endl;
     int id = 0;
-    vector<unique_ptr<thread>> threadList;
+    vector<unique_ptr<thread>> threadList; //keep track of all the client threads
 
-    while (ready)
+    while (ready) //Creating multiple client sockets to interact with the server
     {
+
+        //** Need check for val <0
         shared_ptr<cs457::tcpUserSocket> clientSocket;
         int val;
-        // touple of socket and its FD
+
+        // tuple of socket and its FD
         tie(clientSocket,val) = mysocket.acceptSocket();
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
@@ -81,7 +84,7 @@ int driver::driverMain(int argc, char **argv)
 
     for (auto& t: threadList)
     {
-        t.get()->join();
+        t.get()->join();   //joining all of the active sockets in threadlist vector together
     }
 
 
