@@ -3,8 +3,9 @@
 //
 
 #include <iostream>
-#include "Server.h"
+#include "main.h"
 #include "client.h"
+#include "driver.h"
 
 int main (int argc, char* argv[]){
     if (argc < 2){
@@ -19,10 +20,13 @@ int main (int argc, char* argv[]){
     }
     std::string toStart = argv[argc-1];
     if(toStart == "srv"){
-        return Server::serverMain(newArgc, newArgv);
+        return driver::driverMain(newArgc, newArgv);
     }
     else if(toStart == "clt"){
         return client::clientMain(newArgc, newArgv);
     }
-
+}
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
 }
