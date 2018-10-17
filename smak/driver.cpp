@@ -7,6 +7,8 @@
 #include "tcpUserSocket.h"
 #include "tcpServerSocket.h"
 #include "driver.h"
+#include "srvState.h"
+#include "netController.h"
 
 using namespace std;
 
@@ -25,8 +27,10 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id)
         if (msg.substr(0,4) == "EXIT")
             cont = false;
 
-        cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
+         cout << "[SERVER] The client is sending message " << msg << " -- With value return = " << val << endl;
         string s =  "[SERVER REPLY] The client is sending message:" + msg  + "\n";
+
+
         thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),s,true);
 
         childT1.join();
@@ -61,7 +65,9 @@ int driver::driverMain(int argc, char **argv)
     mysocket.listenSocket();  //Listen for incoming client connections
     cout << "Waiting to Accept Socket" << std::endl;
     int id = 0;
-    vector<unique_ptr<thread>> threadList; //keep track of all the client threads
+
+    srvState serverState = srvState();
+    netController netCon = netController(serverState);
 
     while (ready) //Creating multiple client sockets to interact with the server
     {
@@ -72,16 +78,17 @@ int driver::driverMain(int argc, char **argv)
 
         // tuple of socket and its FD
         tie(clientSocket,val) = mysocket.acceptSocket();
+        serverState.pushBackSession(clientSocket);
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
         unique_ptr<thread> t = make_unique<thread>(cclient,clientSocket,id);
-        threadList.push_back(std::move(t));
+        serverState.pushBackThread(std::move(t));
 
         id++; //not the best way to go about it. 
         // threadList.push_back(t);
 
     }
-
+    auto threadList = serverState.getThreads();
     for (auto& t: threadList)
     {
         t.get()->join();   //joining all of the active sockets in threadlist vector together
