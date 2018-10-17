@@ -28,6 +28,9 @@ int cs457::tcpServerSocket::listenSocket()
     return listen(serverSocket,14);
 }
 
+
+
+
 tuple<shared_ptr<cs457::tcpUserSocket>,int> cs457::tcpServerSocket::acceptSocket()
 {
     shared_ptr<cs457::tcpUserSocket> userSocket = make_shared<tcpUserSocket>();
@@ -49,6 +52,10 @@ tuple<shared_ptr<cs457::tcpUserSocket>,int> cs457::tcpServerSocket::acceptSocket
     return make_tuple(userSocket,client_fd);
 }
 
+
+
+
+
 void cs457::tcpServerSocket::init()
 {
     serverSocket = socket(AF_INET,SOCK_STREAM,IPPROTO_TCP);
@@ -68,6 +75,9 @@ void cs457::tcpServerSocket::init()
 
     serverAddress.sin_port = htons(port);
 }
+
+
+
 
 void cs457::tcpServerSocket::setSocketOptions()
 {

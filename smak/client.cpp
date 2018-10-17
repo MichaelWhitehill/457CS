@@ -14,16 +14,64 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <thread>
+#include <iostream>
+#include<getopt.h>
+#include<fstream>
+
+
 
 int client::clientMain(int argc, char *argv[])
 {
-    if (argc < 3) {
-        fprintf(stderr,"usage %s hostname port\n", argv[0]);
+
+    if (argc < 5) {
+        std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -h hostname -u username -p server_port clt";
         exit(0);
-    }
+    }std::cout <<"[Starting Client]" << std::endl;
+
+    //processing arguments with getOpt:
+    std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
+   int port = 0;    //destination server port
+   std::ofstream logFile;   //string logFile name
+
+   int option;
+   while((option = getopt(argc, argv, "h:u:p:c:t:L:"))!=-1){
+       switch(option){
+           case 'h' :   hostName = optarg;
+                        std::cout <<"Client hostName: " << hostName<< std::endl;
+                        break;
+           case 'u' :   userName = optarg;
+                        std::cout <<"Client userName: " << userName<< std::endl;
+                        break;
+           case 'p' :   port = atoi(optarg);
+                        std::cout <<"Client Port: " << port<< std::endl;
+                        break;
+           case 'c' :   configFile = optarg;
+                        std::cout <<"Config File name: "<< configFile<< std::endl;
+                        break;
+           case 't' :   testFile = optarg;
+                        std::cout <<"Test File name: "<< testFile<< std::endl;
+                        break;
+           case 'L' :   {std::ofstream logFile = std::ofstream(optarg);
+                        std::cout <<"Log File has been opened under name: "<<optarg << std::endl;
+                        break;}
+           default  :   std::cerr<< "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
+                        exit(0);
+       }
+   }
+
+   if(!configFile.empty()){
+       std::cout << "[Initializing Client from .config file]"<<std::endl;
+       
+   }
+
+//outfile << "my text here" << std:: endl;
+//outfile.close()
+
+
+
+
     ssize_t errNo;
 
-    int portNo = atoi(argv[2]);
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
@@ -39,7 +87,7 @@ int client::clientMain(int argc, char *argv[])
     bcopy((char *)server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
-    serv_addr.sin_port = htons(static_cast<uint16_t>(portNo));
+    serv_addr.sin_port = htons(static_cast<uint16_t>(port));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
