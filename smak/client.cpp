@@ -55,6 +55,7 @@ int client::clientMain(int argc, char *argv[])
         errNo = read(sockfd,buffer,255);
         if (errNo < 0)
             error("ERROR reading from socket");
+
         printf("%s\n",buffer);
         std::string recString = buffer;
         if (recString == "GOODBYE"){
