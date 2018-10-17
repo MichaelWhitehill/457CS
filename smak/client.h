@@ -20,6 +20,8 @@ public:
      */
     static void writeSock(int sockFd);
 
+    static void parseArgs(int argc, char *argv[]);
+
     struct clientInfo{};
 };
 

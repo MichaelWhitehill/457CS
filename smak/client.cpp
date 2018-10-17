@@ -22,7 +22,10 @@ struct clientInfo{
     std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
     int port = 0;    //destination server port
     std::ofstream logFile;   //string logFile name
-};
+}clientState;
+
+
+
 
 int client::clientMain(int argc, char *argv[])
 {
@@ -33,50 +36,10 @@ int client::clientMain(int argc, char *argv[])
     }std::cout <<"[Starting Client]" << std::endl;
 
 
-    //processing arguments with getOpt:
-    std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
-   int port = 0;    //destination server port
-   std::ofstream logFile;   //string logFile name
+    parseArgs(argc, argv);
+    
 
-    //Run switch statement below regardless of # of args provided so that configFile is populated in either case:
-
-       int option;
-       while ((option = getopt(argc, argv, "h:u:p:c:t:L:")) != -1) {
-           switch (option) {
-               case 'h' :
-                   hostName = optarg;
-                   std::cout << "Client hostName: " << hostName << std::endl;
-                   break;
-               case 'u' :
-                   userName = optarg;
-                   std::cout << "Client userName: " << userName << std::endl;
-                   break;
-               case 'p' :
-                   port = atoi(optarg);
-                   std::cout << "Client Port: " << port << std::endl;
-                   break;
-               case 'c' :
-                   configFile = optarg;
-                   std::cout << "Config File name: " << configFile << std::endl;
-                   break;
-               case 't' :
-                   testFile = optarg;
-                   std::cout << "Test File name: " << testFile << std::endl;
-                   break;
-               case 'L' : {
-                   std::ofstream logFile = std::ofstream(optarg);
-                   std::cout << "Log File has been opened under name: " << optarg << std::endl;
-                   break;
-               }
-               default  :
-                   std::cerr
-                           << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
-                   exit(0);
-           }
-       }
-
-
-   if(!configFile.empty()){
+   if(!clientState.configFile.empty()){
        std::cout << "[Initializing Client from .config file]"<<std::endl;
        //Config file has been supplied as single arg and vars will be populated from file:
 
@@ -107,7 +70,7 @@ int client::clientMain(int argc, char *argv[])
     bcopy((char *)server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
-    serv_addr.sin_port = htons(static_cast<uint16_t>(port));
+    serv_addr.sin_port = htons(static_cast<uint16_t>(clientState.port));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
@@ -152,4 +115,46 @@ void client::writeSock(int sockFd) {
         if (errNo < 0)
             error("ERROR writing to socket");
     }
+}
+
+void client::parseArgs(int argc, char *argv[]){
+    //processing arguments with getOpt:
+
+    //Run switch statement below regardless of # of args provided so that configFile is populated in either case:
+
+    int option;
+    while ((option = getopt(argc, argv, "h:u:p:c:t:L:")) != -1) {
+        switch (option) {
+            case 'h' :
+                clientState.hostName = optarg;
+                std::cout << "Client hostName: " << clientState.hostName << std::endl;
+                break;
+            case 'u' :
+                clientState.userName = optarg;
+                std::cout << "Client userName: " << clientState.userName << std::endl;
+                break;
+            case 'p' :
+                clientState.port = atoi(optarg);
+                std::cout << "Client Port: " << clientState.port << std::endl;
+                break;
+            case 'c' :
+                clientState.configFile = optarg;
+                std::cout << "Config File name: " << clientState.configFile << std::endl;
+                break;
+            case 't' :
+                clientState.testFile = optarg;
+                std::cout << "Test File name: " << clientState.testFile << std::endl;
+                break;
+            case 'L' : {
+                std::ofstream logFile = std::ofstream(optarg);
+                std::cout << "Log File has been opened under name: " << optarg << std::endl;
+                break;
+            }
+            default  :
+                std::cerr
+                        << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
+                exit(0);
+        }
+    }
+
 }
