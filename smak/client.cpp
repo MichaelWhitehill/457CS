@@ -19,7 +19,8 @@
 #include<fstream>
 
 struct clientInfo{
-    std::string hostName, userName, configFile, testFile; //config File & test File parameter will be string to existing file
+    char *hostName = nullptr;
+    std::string userName, configFile, testFile; //config File & test File parameter will be string to existing file
     int port = 0;    //destination server port
     std::ofstream logFile;   //string logFile name
 }clientState;
@@ -37,20 +38,16 @@ int client::clientMain(int argc, char *argv[])
 
 
     parseArgs(argc, argv);
-    
+
 
    if(!clientState.configFile.empty()){
        std::cout << "[Initializing Client from .config file]"<<std::endl;
        //Config file has been supplied as single arg and vars will be populated from file:
-
-
-
-   }
-
+        //TODO: parse config file and cast string hostname to *char?
 //outfile << "my text here" << std:: endl;
 //outfile.close()
 
-
+   }
 
 
     ssize_t errNo;
@@ -59,11 +56,14 @@ int client::clientMain(int argc, char *argv[])
     if (sockfd < 0)
         error("ERROR opening socket");
     struct hostent *server;
-    server = gethostbyname(argv[1]);
-    if (server == nullptr) {
+    server = gethostbyname(clientState.hostName);
+
+    if (server == nullptr) { //also doubles as a check for the clientState struct var
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
     }
+
+
     struct sockaddr_in serv_addr;
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
