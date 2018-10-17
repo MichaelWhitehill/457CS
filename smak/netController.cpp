@@ -16,10 +16,12 @@ netController::netController(srvState* state) {
 }
 
 void netController::broadcastMessage(const std::string &toBroadcast) {
+    // Get the list of sessions or connected users
     auto sessions = serverState->getSessions();
     for (std::shared_ptr<cs457::tcpUserSocket> session : sessions){
-        // thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),msg,true);
+        // for each user we need to spin up a thread to send them the message
         std::thread senderThread = std::thread(&cs457::tcpUserSocket::sendString, session, toBroadcast, true);
+        // Every thread must be joined/closed before continuing to the next
         senderThread.join();
     }
 }

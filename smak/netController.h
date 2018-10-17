@@ -10,6 +10,10 @@
 
 class netController {
 public:
+    /**
+     * Basic constructor, could use some revamping
+     * @param state Pointer to an srvState instance.
+     */
     netController(srvState* state);
 
     /**
@@ -19,6 +23,7 @@ public:
     void interpret(const std::string& cmd);
 
 private:
+    // Should contain all generic info and list of connections
     srvState* serverState;
 
     /**
