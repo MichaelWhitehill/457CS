@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <thread>
 
 int client::clientMain(int argc, char *argv[])
 {
@@ -41,26 +42,46 @@ int client::clientMain(int argc, char *argv[])
     serv_addr.sin_port = htons(static_cast<uint16_t>(portNo));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
-    // now we'll let you enter messages
+
+    //TODO: Make clean exit where the sockets get closed
+    std::thread listener = std::thread(client::listenAndPrint, sockfd);
+    std::thread writer = std::thread(client::writeSock, sockfd);
+    listener.join();
+    writer.join();
+
+
+}
+
+void client::listenAndPrint(int sockFd) {
     char buffer[256];
     uint bufferSize = 256;
-    while (true){
-        memset(buffer, 0, bufferSize);
-        printf("Please enter the message: ");
-        fgets(buffer,255,stdin);
-        errNo = write(sockfd,buffer,strlen(buffer));
-        if (errNo < 0)
-            error("ERROR writing to socket");
+    ssize_t errNo;
+    while(true){
         memset(buffer, 0, 256);
-        errNo = read(sockfd,buffer,255);
+        errNo = read(sockFd,buffer,255);
         if (errNo < 0)
             error("ERROR reading from socket");
 
         printf("%s\n",buffer);
         std::string recString = buffer;
         if (recString == "GOODBYE"){
-            close(sockfd);
-            return 0;
+            close(sockFd);
+            return;
         }
+    }
+}
+
+void client::writeSock(int sockFd) {
+    char buffer[256];
+    uint bufferSize = 256;
+    ssize_t errNo;
+    // TODO: Add exit condition and gracefully close
+    while(true){
+        memset(buffer, 0, bufferSize);
+        printf("Please enter the message: ");
+        fgets(buffer,255,stdin);
+        errNo = write(sockFd,buffer,strlen(buffer));
+        if (errNo < 0)
+            error("ERROR writing to socket");
     }
 }
