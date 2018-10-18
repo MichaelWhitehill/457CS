@@ -31,19 +31,36 @@ struct clientInfo{
 int client::clientMain(int argc, char *argv[])
 {
 
+//    for (int i=0; i<argc; i++){
+//        std::cout << argv[i] << std::endl;
+//
+//    }
+
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
         exit(0);
     }std::cout <<"[Starting Client]" << std::endl;
 
 
-    parseArgs(argc, argv);
+    parseArgs(argc, argv); //Parsing manually entered args
 
 
    if(!clientState.configFile.empty()){
        std::cout << "[Initializing Client from .config file]"<<std::endl;
-       //Config file has been supplied as single arg and vars will be populated from file:
-        //TODO: parse config file and cast string hostname to *char?
+
+       std::ifstream read = std::ifstream(clientState.configFile);
+
+       if(!read){
+                error("ERROR opening config File");
+             exit(1);}
+
+
+       for(std::string line; std::getline(read, line);){
+            //TODO: parse file and pass char* to parseArgs()? or parse line by line here in this method
+       }
+
+
+       //format of file will be the same as manual input - can be setup as needed from specs
 //outfile << "my text here" << std:: endl;
 //outfile.close()
 
@@ -152,7 +169,7 @@ void client::parseArgs(int argc, char *argv[]){
             }
             default  :
                 std::cerr
-                        << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverport ";
+                        << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile";
                 exit(0);
         }
     }
