@@ -14,32 +14,80 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <thread>
+#include <iostream>
+#include<getopt.h>
+#include<fstream>
+
+struct clientInfo{
+    char *hostName = nullptr;
+    std::string userName, configFile, testFile; //config File & test File parameter will be string to existing file
+    int port = 0;    //destination server port
+    std::ofstream logFile;   //string logFile name
+}clientState;
+
+
+
 
 int client::clientMain(int argc, char *argv[])
 {
-    if (argc < 3) {
-        fprintf(stderr,"usage %s hostname port\n", argv[0]);
+
+//    for (int i=0; i<argc; i++){
+//        std::cout << argv[i] << std::endl;
+//
+//    }
+
+    if (argc < 2) {
+        std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
         exit(0);
-    }
+    }std::cout <<"[Starting Client]" << std::endl;
+
+
+    parseArgs(argc, argv); //Parsing manually entered args
+
+
+   if(!clientState.configFile.empty()){
+       std::cout << "[Initializing Client from .config file]"<<std::endl;
+
+       std::ifstream read = std::ifstream(clientState.configFile);
+
+       if(!read){
+                error("ERROR opening config File");
+             exit(1);}
+
+
+       for(std::string line; std::getline(read, line);){
+            //TODO: parse file and pass char* to parseArgs()? or parse line by line here in this method
+       }
+
+
+       //format of file will be the same as manual input - can be setup as needed from specs
+//outfile << "my text here" << std:: endl;
+//outfile.close()
+
+   }
+
+
     ssize_t errNo;
 
-    int portNo = atoi(argv[2]);
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
     struct hostent *server;
-    server = gethostbyname(argv[1]);
-    if (server == nullptr) {
+    server = gethostbyname(clientState.hostName);
+
+    if (server == nullptr) { //also doubles as a check for the clientState struct var
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
     }
+
+
     struct sockaddr_in serv_addr;
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr,
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
-    serv_addr.sin_port = htons(static_cast<uint16_t>(portNo));
+    serv_addr.sin_port = htons(static_cast<uint16_t>(clientState.port));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
@@ -84,4 +132,46 @@ void client::writeSock(int sockFd) {
         if (errNo < 0)
             error("ERROR writing to socket");
     }
+}
+
+void client::parseArgs(int argc, char *argv[]){
+    //processing arguments with getOpt:
+
+    //Run switch statement below regardless of # of args provided so that configFile is populated in either case:
+
+    int option;
+    while ((option = getopt(argc, argv, "h:u:p:c:t:L:")) != -1) {
+        switch (option) {
+            case 'h' :
+                clientState.hostName = optarg;
+                std::cout << "Client hostName: " << clientState.hostName << std::endl;
+                break;
+            case 'u' :
+                clientState.userName = optarg;
+                std::cout << "Client userName: " << clientState.userName << std::endl;
+                break;
+            case 'p' :
+                clientState.port = atoi(optarg);
+                std::cout << "Client Port: " << clientState.port << std::endl;
+                break;
+            case 'c' :
+                clientState.configFile = optarg;
+                std::cout << "Config File name: " << clientState.configFile << std::endl;
+                break;
+            case 't' :
+                clientState.testFile = optarg;
+                std::cout << "Test File name: " << clientState.testFile << std::endl;
+                break;
+            case 'L' : {
+                std::ofstream logFile = std::ofstream(optarg);
+                std::cout << "Log File has been opened under name: " << optarg << std::endl;
+                break;
+            }
+            default  :
+                std::cerr
+                        << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile";
+                exit(0);
+        }
+    }
+
 }

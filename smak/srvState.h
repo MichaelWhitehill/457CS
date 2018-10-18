@@ -34,6 +34,7 @@ public:
      */
     const std::string& getChatLog();
 
+
 private:
     //TODO: Add server rules as string (maybe?)
 

@@ -19,6 +19,10 @@ public:
      * @param sockFd Socket file descriptor
      */
     static void writeSock(int sockFd);
+
+    static void parseArgs(int argc, char *argv[]);
+
+    struct clientInfo{};
 };
 
 

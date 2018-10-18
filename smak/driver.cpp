@@ -32,9 +32,12 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController 
         if (msg.substr(0,4) == "EXIT") // TODO: This doesn't work
             cont = false;
         cout << "Server recieved: " << msg <<"\n";
+
+
         // Only the client who sent the message will get a response from General Grievous
         thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),"General konobi",true);
         childT1.join();
+
         // Normally this would process our message, right now it just adds it to a log and sends it to everyone
         netCon.interpret(msg);
 
@@ -58,6 +61,10 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController 
     return 1;
 }
 
+
+
+
+
 int driver::driverMain(int argc, char **argv)
 {
     // TODO: Check arg count (or just parse the args and forget it)
@@ -71,14 +78,16 @@ int driver::driverMain(int argc, char **argv)
     mysocket.listenSocket();  //Listen for incoming client connections
     cout << "Waiting to Accept Socket" << std::endl;
     int id = 0;
+
+
     vector<unique_ptr<thread>> threadList; //keep track of all the client threads
     srvState serverState = srvState(&threadList);
-    netController netCon = netController(&serverState);
+    netController netCon = netController(&serverState); //netCon now has a server object to manipulate its data
 
     while (ready) //Creating multiple client sockets to interact with the server
     {
 
-        //** Need check for val <0
+        // TODO: Err check for val<0 Use main::Error
         shared_ptr<cs457::tcpUserSocket> clientSocket;
         int val;
 
@@ -88,6 +97,7 @@ int driver::driverMain(int argc, char **argv)
         // TODO Cleanup error statements
         cout << "value for accept is " << val << std::endl;
         cout << "Socket Accepted" << std::endl;
+
         serverState.pushBackSession(clientSocket);
         unique_ptr<thread> t = make_unique<thread>(cclient,clientSocket,id, netCon);
         threadList.push_back(std::move(t));
