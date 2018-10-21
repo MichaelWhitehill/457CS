@@ -35,6 +35,9 @@ public:
     const std::string& getChatLog();
 
 
+    void removeSession(std::shared_ptr<cs457::tcpUserSocket> user);
+
+
 private:
     //TODO: Add server rules as string (maybe?)
 

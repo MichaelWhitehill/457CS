@@ -43,6 +43,7 @@ int client::clientMain(int argc, char *argv[])
 
 
     parseArgs(argc, argv); //Parsing manually entered args
+    std::cout<< "Parse args" << std::endl;
 
 
    if(!clientState.configFile.empty()){
@@ -92,15 +93,17 @@ int client::clientMain(int argc, char *argv[])
         error("ERROR connecting");
 
     //TODO: Make clean exit where the sockets get closed
-    std::thread listener = std::thread(client::listenAndPrint, sockfd);
-    std::thread writer = std::thread(client::writeSock, sockfd);
+    int disconnect = 0;
+    std::thread listener = std::thread(client::listenAndPrint, sockfd, &disconnect);
+    std::thread writer = std::thread(client::writeSock, sockfd, &disconnect);
     listener.join();
     writer.join();
+    close(sockfd);
 
 
 }
 
-void client::listenAndPrint(int sockFd) {
+void client::listenAndPrint(int sockFd, int* disconnect) {
     char buffer[256];
     uint bufferSize = 256;
     ssize_t errNo;
@@ -113,18 +116,20 @@ void client::listenAndPrint(int sockFd) {
         printf("%s\n",buffer);
         std::string recString = buffer;
         if (recString == "GOODBYE"){
-            close(sockFd);
+            *disconnect = 1;
             return;
         }
     }
 }
 
-void client::writeSock(int sockFd) {
+void client::writeSock(int sockFd, int* disconnect) {
     char buffer[256];
     uint bufferSize = 256;
     ssize_t errNo;
     // TODO: Add exit condition and gracefully close
     while(true){
+        if(*disconnect != 0)
+            return;
         memset(buffer, 0, bufferSize);
         printf("Please enter the message: ");
         fgets(buffer,255,stdin);
