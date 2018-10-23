@@ -4,7 +4,8 @@
 
 #ifndef SMAK_CLIENT_H
 #define SMAK_CLIENT_H
-
+#include <vector>
+#include <string>
 
 class client {
 public:
@@ -24,7 +25,12 @@ public:
 
     static void parseArgs(int argc, char *argv[]);
 
-    struct clientInfo{};
+    static std::vector<std::string> split(std::string const &input);
+
+    static bool fileExists(std::string &Filename);
+
+
+        struct clientInfo{};
 };
 
 

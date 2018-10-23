@@ -17,20 +17,28 @@
 #include <iostream>
 #include<getopt.h>
 #include<fstream>
+#include <vector>
+#include <sstream>
+#include <iterator>
+#include "time.h"
+
 
 struct clientInfo{
     char *hostName = nullptr;
-    std::string userName, configFile, testFile; //config File & test File parameter will be string to existing file
+    std::string userName, configFile, testFile, logFile; //config File & test File parameter will be string to existing file
     int port = 0;    //destination server port
-    std::ofstream logFile;   //string logFile name
+    std::ofstream logFileWrite;   //string logFile name - file writer will be used by many function calls
 }clientState;
 
 
+static auto t = time(NULL); //var for current time
 
 
 int client::clientMain(int argc, char *argv[])
 {
 
+    //DEBUG:
+//    std::cout<<"argv length: "<< argc << std::endl;
 //    for (int i=0; i<argc; i++){
 //        std::cout << argv[i] << std::endl;
 //
@@ -42,42 +50,97 @@ int client::clientMain(int argc, char *argv[])
     }std::cout <<"[Starting Client]" << std::endl;
 
 
-    parseArgs(argc, argv); //Parsing manually entered args
-    std::cout<< "Parse args" << std::endl;
+    parseArgs(argc, argv); //Parsing manually entered args to populate config file path by default
 
 
-   if(!clientState.configFile.empty()){
+   if(fileExists(clientState.configFile)&&!clientState.configFile.empty()){
+       //according to the TA in lab 10/18 we need to create a config file and populate it with the manual entries if no config file is provided
+       //file will be formatted in the same way as manually passed args - SHOULD HAVE 5 LINES VS 6- no line for config file, as we already have that:
+       //1 -h hostname
+       //2 -u username
+       //3 -p port#
+       //4 -t text file path
+       //5 -L log file path
+
        std::cout << "[Initializing Client from .config file]"<<std::endl;
 
        std::ifstream read = std::ifstream(clientState.configFile);
 
-       if(!read){
-                error("ERROR opening config File");
+       if(!read.is_open()){
+                error("ERROR: cannot open config File");
              exit(1);}
 
-
        for(std::string line; std::getline(read, line);){
-            //TODO: parse file and pass char* to parseArgs()? or parse line by line here in this method
+        //parse the file line by line and populate vars vs messing with pointers
+        std::vector<std::string> parse = split(line);
+        if(parse[0]=="-h"){
+            std::vector<char> temp(parse[1].length()+1);
+            strcpy(&temp[0], parse[1].c_str());
+            char* pc = new char[parse[1].length()+1];
+            clientState.hostName= strcpy(pc, &temp[0]); //TODO: remove redundant steps above?
+        }
+
+        else if(parse[0]=="-u"){clientState.userName = parse[1];}
+        else if(parse[0]=="-p"){clientState.port = stoi(parse[1]);}
+        else if(parse[0]=="-t"){clientState.testFile = parse[1];}
+        else if(parse[0]=="-L"){clientState.logFile = parse[1];}
+        else error("ERROR: Incorrect formatting in .config file");
+
        }
+       std::string uname = "[LOG]_";
+       uname.append(clientState.userName);
+       clientState.logFile.append(uname);
+
+       std::cout<<"\n[Client Variables set by .config file:]"<<std::endl
+       << "Client hostName: " << clientState.hostName << std::endl
+       << "Client userName: " << clientState.userName << std::endl
+       << "Client Port: " << clientState.port << std::endl
+       << "Config File name: " << clientState.configFile << std::endl
+       << "Test File name: " << clientState.testFile <<std::endl
+       << "Log File name: " << clientState.logFile << "\n" <<std::endl;
+   }
+
+   //create log file and set member var if file does not exist already: - **LogFile variable should include directory path!!
+   if(!fileExists(clientState.logFile)){
+       clientState.logFileWrite = std::ofstream(clientState.logFile);
+       if(!clientState.logFileWrite.is_open()){error("ERROR: Unable to open log File for client"); exit(1);}
+       else        std::cout<< "New Log File opened for writing\n" << std::endl;
+
+       struct tm* curtime = localtime(&t);
+       clientState.logFileWrite << "\n[" << asctime(curtime) << "] STARTING LOG FILE: "<< std::endl
+               <<"Client hostName: " << clientState.hostName << std::endl
+               << "Client Port: " << clientState.port << std::endl;
 
 
-       //format of file will be the same as manual input - can be setup as needed from specs
-//outfile << "my text here" << std:: endl;
-//outfile.close()
+   }else {
 
+       const char* remv = clientState.logFile.c_str();
+       if(std::remove(remv)!=0){error("ERROR deleting existing logFile for client");}
+       else {
+           std::cout << "Old client log File successfully deleted - opening fresh file" << std::endl;
+           clientState.logFileWrite = std::ofstream(clientState.logFile);
+           std::cout<< "New Client Log File opened for writing" << std::endl;
+
+           struct tm* curtime = localtime(&t);
+           clientState.logFileWrite << "\n[" << asctime(curtime) << "] STARTING LOG FILE: "<< std::endl
+                   <<"Client hostName: " << clientState.hostName << std::endl
+                   << "Client Port: " << clientState.port << std::endl;
+       }
    }
 
 
+
+   //FILES HAVE BEEN READ AND OPENED - SETUP CONNECTION WITH SERVER:
     ssize_t errNo;
 
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
-        error("ERROR opening socket");
+        error("ERROR: opening socket");
     struct hostent *server;
     server = gethostbyname(clientState.hostName);
 
     if (server == nullptr) { //also doubles as a check for the clientState struct var
-        fprintf(stderr,"ERROR, no such host\n");
+        fprintf(stderr,"ERROR: no such host");
         exit(0);
     }
 
@@ -100,6 +163,9 @@ int client::clientMain(int argc, char *argv[])
     writer.join();
     close(sockfd);
 
+    //Closing logFile writer:
+    clientState.logFileWrite.close();
+
 
 }
 
@@ -113,11 +179,23 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
         if (errNo < 0)
             error("ERROR reading from socket");
 
-        printf("%s\n",buffer);
+
+        struct tm* curtime = localtime(&t);
+
+        std::cout<< "RECIEVED: "<<buffer<<std::endl;
         std::string recString = buffer;
+
+        //std::endl automatically adds a \n and flushes the stream!
         if (recString == "GOODBYE"){
             *disconnect = 1;
+            clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString << "EXITING CLIENT" << std::endl;
+            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");}
             return;
+        }else{
+            clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString <<std::endl;
+            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");
+            return;
+            }
         }
     }
 }
@@ -139,10 +217,13 @@ void client::writeSock(int sockFd, int* disconnect) {
     }
 }
 
-void client::parseArgs(int argc, char *argv[]){
+
+
+void client::parseArgs(int argc, char *argv[]) {
     //processing arguments with getOpt:
 
-    //Run switch statement below regardless of # of args provided so that configFile is populated in either case:
+    //Run switch statement below regardless of # of args provided so that configFile variable in struct is populated in either case:
+    std::cout<<"\n[Client Variables set by manual args:]"<<std::endl;
 
     int option;
     while ((option = getopt(argc, argv, "h:u:p:c:t:L:")) != -1) {
@@ -168,8 +249,8 @@ void client::parseArgs(int argc, char *argv[]){
                 std::cout << "Test File name: " << clientState.testFile << std::endl;
                 break;
             case 'L' : {
-                std::ofstream logFile = std::ofstream(optarg);
-                std::cout << "Log File has been opened under name: " << optarg << std::endl;
+                clientState.logFile = optarg;
+               // std::cout << "Log File has been opened under name: " << optarg << std::endl;
                 break;
             }
             default  :
@@ -180,3 +261,20 @@ void client::parseArgs(int argc, char *argv[]){
     }
 
 }
+
+std::vector<std::string> client::split(std::string const &input){
+        std::istringstream buffer(input);
+        std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), std::istream_iterator<std::string>());
+
+        return ret;
+    }
+
+bool client::fileExists(std::string &Filename) {
+    std::ifstream file(Filename);
+    if(!file)
+        return false;
+    else
+        return true;
+}
+
+
