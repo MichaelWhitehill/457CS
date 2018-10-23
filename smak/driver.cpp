@@ -29,10 +29,7 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController 
     {
 
         tie(msg,val) = clientSocket.get()->recvString();
-        if (msg.substr(0,4) == "EXIT") // TODO: This doesn't work
-            cont = false;
         cout << "Server recieved: " << msg <<"\n";
-
 
         // Only the client who sent the message will get a response from General Grievous
         thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),"General konobi",true);
@@ -40,6 +37,9 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController 
 
         // Normally this would process our message, right now it just adds it to a log and sends it to everyone
         netCon.interpret(msg);
+        if (msg.substr(0,4) == "EXIT"){// TODO: This doesn't work
+            cont = false;
+        }
 
         if (msg.substr(0,6) == "SERVER") // TODO: I don't know what this does, but it doesn't work
         {
@@ -55,9 +55,11 @@ int cclient(shared_ptr<cs457::tcpUserSocket> clientSocket,int id, netController 
             cout << "waiting for another message" << endl;
         }
     }
-    clientSocket.get()->sendString("goodbye");
+    thread childT1(&cs457::tcpUserSocket::sendString,clientSocket.get(),"GOODBYE",true);
+    childT1.join();
     // TODO: Make sure we remove the socket from netCon and srvState
-    clientSocket.get()->closeSocket();
+    netCon.closeConnection(clientSocket);
+    std::cout<<"Server disconnected from client.\n";
     return 1;
 }
 

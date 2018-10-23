@@ -28,3 +28,11 @@ std::vector<std::shared_ptr<cs457::tcpUserSocket>> srvState::getSessions() {
     return sessions;
 }
 
+void srvState::removeSession(const std::shared_ptr<cs457::tcpUserSocket> user) {
+    for (size_t i = 0; i < sessions.size(); ++i){
+        if(sessions[i] == user){
+            sessions.erase(sessions.begin() + i);
+        }
+    }
+}
+

@@ -8,8 +8,8 @@ void netController::interpret(const std::string &cmd) {
     // TODO: everything
     serverState->appendToChat(cmd);
     this->broadcastMessage(serverState->getChatLog());
-
 }
+
 
 netController::netController(srvState* state) {
     serverState = state;
@@ -24,4 +24,15 @@ void netController::broadcastMessage(const std::string &toBroadcast) {
         // Every thread must be joined/closed before continuing to the next
         senderThread.join();
     }
+}
+
+void netController::closeConnection(std::shared_ptr<cs457::tcpUserSocket> closedClient) {
+    closedClient->closeSocket();
+    serverState->removeSession(closedClient);
+
+    unsigned long con_count = serverState->getSessions().size();
+    std::string s = "There are ";
+    s += con_count;
+    s += "connections\n";
+    broadcastMessage(s);
 }

@@ -54,7 +54,6 @@ int client::clientMain(int argc, char *argv[])
 
 
    if(fileExists(clientState.configFile)&&!clientState.configFile.empty()){
-
        //according to the TA in lab 10/18 we need to create a config file and populate it with the manual entries if no config file is provided
        //file will be formatted in the same way as manually passed args - SHOULD HAVE 5 LINES VS 6- no line for config file, as we already have that:
        //1 -h hostname
@@ -157,10 +156,12 @@ int client::clientMain(int argc, char *argv[])
         error("ERROR connecting");
 
     //TODO: Make clean exit where the sockets get closed
-    std::thread listener = std::thread(client::listenAndPrint, sockfd);
-    std::thread writer = std::thread(client::writeSock, sockfd);
+    int disconnect = 0;
+    std::thread listener = std::thread(client::listenAndPrint, sockfd, &disconnect);
+    std::thread writer = std::thread(client::writeSock, sockfd, &disconnect);
     listener.join();
     writer.join();
+    close(sockfd);
 
     //Closing logFile writer:
     clientState.logFileWrite.close();
@@ -168,9 +169,7 @@ int client::clientMain(int argc, char *argv[])
 
 }
 
-
-
-void client::listenAndPrint(int sockFd) {
+void client::listenAndPrint(int sockFd, int* disconnect) {
     char buffer[256];
     uint bufferSize = 256;
     ssize_t errNo;
@@ -188,9 +187,9 @@ void client::listenAndPrint(int sockFd) {
 
         //std::endl automatically adds a \n and flushes the stream!
         if (recString == "GOODBYE"){
+            *disconnect = 1;
             clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString << "EXITING CLIENT" << std::endl;
             if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");}
-            close(sockFd);
             return;
         }else{
             clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString <<std::endl;
@@ -201,14 +200,14 @@ void client::listenAndPrint(int sockFd) {
     }
 }
 
-
-
-void client::writeSock(int sockFd) {
+void client::writeSock(int sockFd, int* disconnect) {
     char buffer[256];
     uint bufferSize = 256;
     ssize_t errNo;
     // TODO: Add exit condition and gracefully close
     while(true){
+        if(*disconnect != 0)
+            return;
         memset(buffer, 0, bufferSize);
         printf("Please enter the message: ");
         fgets(buffer,255,stdin);

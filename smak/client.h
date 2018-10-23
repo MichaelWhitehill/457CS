@@ -13,13 +13,15 @@ public:
     /**
      * Busy listens to a file descriptor. Meant to be called as a thread
      * @param sockFd socket file descriptor
+     * @param disconnect A pointer to an int that will be shared with write, indicating when it's time to close the socket
      */
-    static void listenAndPrint(int sockFd);
+    static void listenAndPrint(int sockFd, int* disconnect);
     /**
      * Listens to keyboard input and writes to server file descriptor. Meant to be called as a thread
      * @param sockFd Socket file descriptor
+     * @param disconnect A pointer to an int that will be shared with listenAndPrint, indicating when it's time to close the socket
      */
-    static void writeSock(int sockFd);
+    static void writeSock(int sockFd, int* disconnect);
 
     static void parseArgs(int argc, char *argv[]);
 
