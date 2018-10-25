@@ -179,10 +179,14 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
         //std::endl automatically adds a \n and flushes the stream!
         if (recString == "GOODBYE"){
             *disconnect = 1;
-            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString <<            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");}
+            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString << "EXITING CLIENT" << std::endl;
+            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){
+                error("ERROR: Client logFile has been opened but was not written to");}
             return;
         }else{
-            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");
+            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString <<std::endl;
+            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){
+                error("ERROR: Client logFile has been opened but was not written to");
             return;
             }
         }
