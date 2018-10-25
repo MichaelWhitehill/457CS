@@ -9,5 +9,4 @@ public:
     static int driverMain(int argc, char *argv[]);
 };
 
-
 #endif //SMAK_DRIVER_H

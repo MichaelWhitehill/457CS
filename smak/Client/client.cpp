@@ -3,7 +3,7 @@
 //
 
 #include "client.h"
-#include "main.h"
+#include "../main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -37,12 +37,6 @@ static auto t = time(NULL); //var for current time
 int client::clientMain(int argc, char *argv[])
 {
 
-    //DEBUG:
-//    std::cout<<"argv length: "<< argc << std::endl;
-//    for (int i=0; i<argc; i++){
-//        std::cout << argv[i] << std::endl;
-//
-//    }
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
@@ -209,7 +203,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
         std::string input = "";
         std::getline(std::cin, input);
         input += "\n";
-        errNo = write(sockFd,input.c_str(),input.size());
+        errNo = write(sockFd, input.c_str(), input.size());
         if (errNo < 0)
             error("ERROR writing to socket");
     }

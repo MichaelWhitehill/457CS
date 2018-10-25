@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include "main.h"
-#include "client.h"
-#include "driver.h"
+#include "Client/client.h"
+#include "Server/driver.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
