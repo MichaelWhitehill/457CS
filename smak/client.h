@@ -21,7 +21,7 @@ public:
      * @param sockFd Socket file descriptor
      * @param disconnect A pointer to an int that will be shared with listenAndPrint, indicating when it's time to close the socket
      */
-    static void writeSock(int sockFd, int* disconnect);
+    static void writeSock(int sockFd, const int* disconnect);
 
     static void parseArgs(int argc, char *argv[]);
 

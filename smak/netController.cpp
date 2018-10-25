@@ -27,12 +27,12 @@ void netController::broadcastMessage(const std::string &toBroadcast) {
 }
 
 void netController::closeConnection(std::shared_ptr<cs457::tcpUserSocket> closedClient) {
+    std::thread childT1(&cs457::tcpUserSocket::sendString,closedClient.get(),"GOODBYE",true);
+    childT1.join();
+
     closedClient->closeSocket();
     serverState->removeSession(closedClient);
-
     unsigned long con_count = serverState->getSessions().size();
-    std::string s = "There are ";
-    s += con_count;
-    s += "connections\n";
+    std::string s = "There are " + std::to_string(con_count) + " connections";
     broadcastMessage(s);
 }

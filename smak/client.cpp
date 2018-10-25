@@ -155,7 +155,6 @@ int client::clientMain(int argc, char *argv[])
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
 
-    //TODO: Make clean exit where the sockets get closed
     int disconnect = 0;
     std::thread listener = std::thread(client::listenAndPrint, sockfd, &disconnect);
     std::thread writer = std::thread(client::writeSock, sockfd, &disconnect);
@@ -200,18 +199,17 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
     }
 }
 
-void client::writeSock(int sockFd, int* disconnect) {
-    char buffer[256];
-    uint bufferSize = 256;
+void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
-    // TODO: Add exit condition and gracefully close
     while(true){
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if(*disconnect != 0)
             return;
-        memset(buffer, 0, bufferSize);
-        printf("Please enter the message: ");
-        fgets(buffer,255,stdin);
-        errNo = write(sockFd,buffer,strlen(buffer));
+        std::cout<<"Please enter the message: ";
+        std::string input = "";
+        std::getline(std::cin, input);
+        input += "\n";
+        errNo = write(sockFd,input.c_str(),input.size());
         if (errNo < 0)
             error("ERROR writing to socket");
     }
