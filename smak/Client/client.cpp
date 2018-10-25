@@ -21,6 +21,7 @@
 #include <sstream>
 #include <iterator>
 #include "time.h"
+#include <algorithm>
 
 
 struct clientInfo{
@@ -85,13 +86,13 @@ int client::clientMain(int argc, char *argv[])
        uname.append(clientState.userName);
        clientState.logFile.append(uname);
 
-       std::cout<<"\n[Client Variables set by .config file:]"<<std::endl
-       << "Client hostName: " << clientState.hostName << std::endl
-       << "Client userName: " << clientState.userName << std::endl
-       << "Client Port: " << clientState.port << std::endl
-       << "Config File name: " << clientState.configFile << std::endl
-       << "Test File name: " << clientState.testFile <<std::endl
-       << "Log File name: " << clientState.logFile << "\n" <<std::endl;
+//       std::cout<<"\n[Client Variables set by .config file:]"<<std::endl
+//       << "Client hostName: " << clientState.hostName << std::endl
+//       << "Client userName: " << clientState.userName << std::endl
+//       << "Client Port: " << clientState.port << std::endl
+//       << "Config File name: " << clientState.configFile << std::endl
+//       << "Test File name: " << clientState.testFile <<std::endl
+//       << "Log File name: " << clientState.logFile << "\n" <<std::endl;
    }
 
    //create log file and set member var if file does not exist already: - **LogFile variable should include directory path!!
@@ -100,8 +101,7 @@ int client::clientMain(int argc, char *argv[])
        if(!clientState.logFileWrite.is_open()){error("ERROR: Unable to open log File for client"); exit(1);}
        else        std::cout<< "New Log File opened for writing\n" << std::endl;
 
-       struct tm* curtime = localtime(&t);
-       clientState.logFileWrite << "\n[" << asctime(curtime) << "] STARTING LOG FILE: "<< std::endl
+       clientState.logFileWrite << "\n[" << getTime() << "] STARTING LOG FILE: "<< std::endl
                <<"Client hostName: " << clientState.hostName << std::endl
                << "Client Port: " << clientState.port << std::endl;
 
@@ -115,8 +115,7 @@ int client::clientMain(int argc, char *argv[])
            clientState.logFileWrite = std::ofstream(clientState.logFile);
            std::cout<< "New Client Log File opened for writing" << std::endl;
 
-           struct tm* curtime = localtime(&t);
-           clientState.logFileWrite << "\n[" << asctime(curtime) << "] STARTING LOG FILE: "<< std::endl
+           clientState.logFileWrite << "\n[" << getTime() << "] STARTING LOG FILE: "<< std::endl
                    <<"Client hostName: " << clientState.hostName << std::endl
                    << "Client Port: " << clientState.port << std::endl;
        }
@@ -173,7 +172,6 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
             error("ERROR reading from socket");
 
 
-        struct tm* curtime = localtime(&t);
 
         std::cout<< "RECIEVED: "<<buffer<<std::endl;
         std::string recString = buffer;
@@ -181,12 +179,10 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
         //std::endl automatically adds a \n and flushes the stream!
         if (recString == "GOODBYE"){
             *disconnect = 1;
-            clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString << "EXITING CLIENT" << std::endl;
-            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");}
+            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString <<            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");}
             return;
         }else{
-            clientState.logFileWrite << "[" << asctime(curtime) << "] RECV: " <<recString <<std::endl;
-            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");
+            clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString            if(clientState.logFileWrite.bad() && fileExists(clientState.logFile)){error("ERROR: Client logFile has been opened but was not written to");
             return;
             }
         }
@@ -267,6 +263,15 @@ bool client::fileExists(std::string &Filename) {
         return false;
     else
         return true;
+}
+
+std::string client::getTime() {
+    t = time(NULL);
+    struct tm* curtime = localtime(&t);
+    std::string ctime = asctime(curtime);
+    ctime.erase(std::remove(ctime.begin(),ctime.end(),'\n'),ctime.end());
+
+    return ctime;
 }
 
 

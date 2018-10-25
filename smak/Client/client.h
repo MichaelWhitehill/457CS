@@ -29,6 +29,7 @@ public:
 
     static bool fileExists(std::string &Filename);
 
+    static std::string getTime();
 
         struct clientInfo{};
 };
