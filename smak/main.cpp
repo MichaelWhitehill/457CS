@@ -6,13 +6,15 @@
 #include "main.h"
 #include "client.h"
 #include "driver.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 
 int main (int argc, char* argv[]){
     if (argc < 2){
         std::cerr<<"Not enough arguments given. Expected [srv, clt], [srv args, client args]"<<std::endl;
         return 1;
     }
-
     int newArgc = argc -1;
     char* newArgv[newArgc];
     for (int i = 0; i < argc-1; ++i){
