@@ -16,23 +16,19 @@ netController::netController(srvState* state) {
 }
 
 void netController::broadcastMessage(const std::string &toBroadcast) {
-    // Get the list of sessions or connected users
-    auto sessions = serverState->getSessions();
-    for (std::shared_ptr<cs457::tcpUserSocket> session : sessions){
-        // for each user we need to spin up a thread to send them the message
-        std::thread senderThread = std::thread(&cs457::tcpUserSocket::sendString, session, toBroadcast, true);
-        // Every thread must be joined/closed before continuing to the next
-        senderThread.join();
+    std::vector<std::shared_ptr<User>> users = serverState->getUsers();
+    for (std::shared_ptr<User> user : users){
+        user.get()->sendString(toBroadcast);
     }
 }
 
-void netController::closeConnection(std::shared_ptr<cs457::tcpUserSocket> closedClient) {
-    std::thread childT1(&cs457::tcpUserSocket::sendString,closedClient.get(),"GOODBYE",true);
-    childT1.join();
+void netController::closeUserConection(std::shared_ptr<User> userToClose) {
+    userToClose.get()->sendString("GOODBYE");
+    auto socket = userToClose.get()->getSocket();
+    socket.get()->closeSocket();
+    serverState->removeUser(userToClose);
 
-    closedClient->closeSocket();
-    serverState->removeSession(closedClient);
-    unsigned long con_count = serverState->getSessions().size();
+    unsigned long con_count = serverState->getUsers().size();
     std::string s = "There are " + std::to_string(con_count) + " connections";
     broadcastMessage(s);
 }
