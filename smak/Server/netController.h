@@ -18,8 +18,9 @@ public:
     netController(srvState* state);
 
     /**
-     * Takes incoming network traffic and determines the function to call
-     * @param cmd incoming command
+     * Takes in a message as a JSON Dom and performs the operation(s) specified
+     * @param cmd a string representation of a JSON Dom from the client
+     * @param fromSession A reference to the user who sent the request
      */
     void interpret(const std::string& cmd, std::shared_ptr<User> fromSession);
 
@@ -27,7 +28,6 @@ public:
      * Closes the connection to a tcpUser socket by closing the FD, and removing it from the srvState list of clients
      * @param closedClient
      */
-
     void closeUserConection(std::shared_ptr<User> userToClose);
 
 private:
@@ -40,6 +40,11 @@ private:
      */
     void broadcastMessage(const std::string& toBroadcast);
 
+    /**
+     * Implementation of the SETNAME OP. It sets the name of the from user to the one specified in the json
+     * @param jsonDom {"OP":"SETNAME","Name":"USERNAME"}
+     * @param fromUser
+     */
     void opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser);
 
 };

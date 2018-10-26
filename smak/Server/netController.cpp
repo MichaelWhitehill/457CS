@@ -13,16 +13,22 @@ void netController::interpret(const std::string &cmd, std::shared_ptr<User> from
     // My Dommy's name is jason
     rapidjson::Document jsonDom;
     jsonDom.Parse(cmd.c_str());
-    if(jsonDom.IsObject()){
+    if(jsonDom.IsObject()) {
+        // Every message that is a json message should have an op that is a string.
+        // Everything else is OP specific
         assert(jsonDom.HasMember(OP));
         assert(jsonDom[OP].IsString());
         std::string op = jsonDom[OP].GetString();
+
         if (op == OP_SETNAME)
             opSetName(jsonDom, fromUser);
 
-    } else {
+    }
+    // This is legacy. It just broadcasts messages that are not json
+    else {
         this->broadcastMessage(serverState->getChatLog());
     }
+    // TODO: Get rid of this
     serverState->appendToChat(cmd);
 }
 

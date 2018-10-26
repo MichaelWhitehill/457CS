@@ -17,8 +17,6 @@ bool ready = true;
 int cclient(std::shared_ptr<User> user,int id, netController netCon)
 {
     std::cout << "Waiting for message from Client Thread" << id << std::endl;
-    // Just a sanity check to the recently connected clients that they get our star wars meme
-    user.get()->sendString("Army or not, you must realize you are doomed");
     std::string msg;
     ssize_t val;
     bool cont =true ;
@@ -27,10 +25,10 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
         tie(msg,val) = user.get()->getSocket().get()->recvString();;
         std::cout << "Server Received[" << msg <<"]\n";
 
-        // Only the client who sent the message will get a response from General Grievous
-        user.get()->sendString("General Konobi");
+        // Only the client who sent the message will get this response
+        user.get()->sendString("I got a message from you");
 
-        // Normally this would process our message, right now it just adds it to a log and sends it to everyone
+        // This processes the message based on it's JSON content
         netCon.interpret(msg, user);
         if (msg.substr(0,4) == "EXIT"){
             cont = false;
@@ -38,12 +36,8 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
 
         if (msg.substr(0,12) == "SERVER_CLOSE") // TODO: I don't know what this does, but it doesn't work
         {
-//            std::thread childTExit(&cs457::tcpUserSocket::sendString,clientSocket.get(),"GOODBYE EVERYONE",false);
-//            std::thread childTExit2(&cs457::tcpUserSocket::sendString,clientSocket.get(),"\n",false);
             ready = false;
             cont = false;
-//            childTExit.join();
-//            childTExit2.join();
         }
     }
     netCon.closeUserConection(user);
@@ -80,7 +74,6 @@ int driver::driverMain(int argc, char **argv)
         // TODO: Err check for val<0 Use main::Error
         std::shared_ptr<cs457::tcpUserSocket> clientSocket;
         int val;
-
         // tuple of socket and its FD
         // TODO: Err check. Use main::Error
         tie(clientSocket,val) = mysocket.acceptSocket();
