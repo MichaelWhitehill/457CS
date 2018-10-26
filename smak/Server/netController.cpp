@@ -8,7 +8,7 @@
 #define OP "OP"
 #define OP_SETNAME "SETNAME"
 
-void netController::interpret(const std::string &cmd, std::shared_ptr<User> fromUser) {
+void smak::netController::interpret(const std::string &cmd, std::shared_ptr<User> fromUser) {
     // TODO: everything
     // My Dommy's name is jason
     rapidjson::Document jsonDom;
@@ -33,18 +33,18 @@ void netController::interpret(const std::string &cmd, std::shared_ptr<User> from
 }
 
 
-netController::netController(srvState* state) {
+smak::netController::netController(srvState* state) {
     serverState = state;
 }
 
-void netController::broadcastMessage(const std::string &toBroadcast) {
+void smak::netController::broadcastMessage(const std::string &toBroadcast) {
     std::vector<std::shared_ptr<User>> users = serverState->getUsers();
     for (std::shared_ptr<User> user : users){
         user.get()->sendString(toBroadcast);
     }
 }
 
-void netController::closeUserConection(std::shared_ptr<User> userToClose) {
+void smak::netController::closeUserConection(std::shared_ptr<User> userToClose) {
     userToClose.get()->sendString("GOODBYE");
     auto socket = userToClose.get()->getSocket();
     socket.get()->closeSocket();
@@ -55,7 +55,7 @@ void netController::closeUserConection(std::shared_ptr<User> userToClose) {
     broadcastMessage(s);
 }
 
-void netController::opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser) {
+void smak::netController::opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser) {
     const std::string NAME_FIELD = "Name";
 
     fromUser.get()->sendString("Your name used to be: " + fromUser.get()->getName());
@@ -68,6 +68,4 @@ void netController::opSetName(const rapidjson::Document& jsonDom, std::shared_pt
     fromUser.get()->setName(newName);
 
     fromUser.get()->sendString("Your new name is to be: " + fromUser.get()->getName());
-
-
 }

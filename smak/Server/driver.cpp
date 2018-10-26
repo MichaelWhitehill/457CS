@@ -14,7 +14,7 @@
 bool ready = true;
 
 // TODO: Clean up this function
-int cclient(std::shared_ptr<User> user,int id, netController netCon)
+int cclient(std::shared_ptr<smak::User> user,int id, smak::netController netCon)
 {
     std::cout << "Waiting for message from Client Thread" << id << std::endl;
     std::string msg;
@@ -65,8 +65,8 @@ int driver::driverMain(int argc, char **argv)
 
 
     std::vector<std::unique_ptr<std::thread>> threadList; //keep track of all the client threads
-    srvState serverState = srvState(&threadList);
-    netController netCon = netController(&serverState); //netCon now has a server object to manipulate its data
+    smak::srvState serverState = smak::srvState(&threadList);
+    smak::netController netCon = smak::netController(&serverState); //netCon now has a server object to manipulate its data
 
     while (ready) //Creating multiple client sockets to interact with the server
     {
@@ -81,7 +81,7 @@ int driver::driverMain(int argc, char **argv)
         std::cout << "value for accept is " << val << std::endl;
         std::cout << "Socket Accepted" << std::endl;
 
-        std::shared_ptr<User> user = std::make_shared<User>(User(clientSocket));
+        std::shared_ptr<smak::User> user = std::make_shared<smak::User>(smak::User(clientSocket));
         serverState.pushBackSession(user);
         std::unique_ptr<std::thread> t = std::make_unique<std::thread>(cclient,user,id, netCon);
         threadList.push_back(std::move(t));
