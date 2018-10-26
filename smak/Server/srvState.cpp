@@ -7,8 +7,8 @@
 
 static std::vector<std::unique_ptr<std::thread>> threadList;
 
-void srvState::pushBackSession(std::shared_ptr<cs457::tcpUserSocket> session) {
-    sessions.push_back(session);
+void srvState::pushBackSession(std::shared_ptr<User> session) {
+    users.push_back(session);
 }
 
 
@@ -24,14 +24,14 @@ srvState::srvState(std::vector<std::unique_ptr<std::thread>> *threadList_p) {
     this->threadList_p = threadList_p;
 }
 
-std::vector<std::shared_ptr<cs457::tcpUserSocket>> srvState::getSessions() {
-    return sessions;
+std::vector<std::shared_ptr<User>> srvState::getUsers() {
+    return users;
 }
 
-void srvState::removeSession(const std::shared_ptr<cs457::tcpUserSocket> user) {
-    for (size_t i = 0; i < sessions.size(); ++i){
-        if(sessions[i] == user){
-            sessions.erase(sessions.begin() + i);
+void srvState::removeUser(std::shared_ptr<User> user) {
+    for (size_t i = 0; i < users.size(); ++i){
+        if(user == users[i]){
+            users.erase(users.begin() + i);
         }
     }
 }

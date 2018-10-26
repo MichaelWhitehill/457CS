@@ -26,7 +26,8 @@ public:
      * Closes the connection to a tcpUser socket by closing the FD, and removing it from the srvState list of clients
      * @param closedClient
      */
-    void closeConnection(std::shared_ptr<cs457::tcpUserSocket> closedClient);
+
+    void closeUserConection(std::shared_ptr<User> userToClose);
 
 private:
     // Should contain all generic info and list of connections

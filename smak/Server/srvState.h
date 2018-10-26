@@ -8,6 +8,7 @@
 
 #include <thread>
 #include "tcpUserSocket.h"
+#include "User.h"
 
 class srvState {
 public:
@@ -16,12 +17,11 @@ public:
      * Adds a session or connection to the list of maintained sessions
      * @param session User socket representing each connected client
      */
-    void pushBackSession(std::shared_ptr<cs457::tcpUserSocket> session);
-    /**
-     * Gives back a list of sessions. We might want to make this const
-     * @return List of user sockets, each representing a connected user
-     */
-    std::vector<std::shared_ptr<cs457::tcpUserSocket>> getSessions();
+    void pushBackSession(std::shared_ptr<User> user);
+
+    std::vector<std::shared_ptr<User>> getUsers();
+
+    void removeUser(std::shared_ptr<User>);
 
     /**
      * appends a const string ref to the current chat log
@@ -35,14 +35,12 @@ public:
     const std::string& getChatLog();
 
 
-    void removeSession(std::shared_ptr<cs457::tcpUserSocket> user);
-
-
 private:
     //TODO: Add server rules as string (maybe?)
 
     // maintains list of all connected
-    std::vector<std::shared_ptr<cs457::tcpUserSocket>> sessions;
+    // std::vector<std::shared_ptr<cs457::tcpUserSocket>> sessions;
+    std::vector<std::shared_ptr<User>> users;
     // using a pointer for the threadList is UNTESTED
     std::vector<std::unique_ptr<std::thread>>* threadList_p;
     std::string chatLog;
