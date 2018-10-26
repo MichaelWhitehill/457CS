@@ -31,7 +31,7 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
         user.get()->sendString("General Konobi");
 
         // Normally this would process our message, right now it just adds it to a log and sends it to everyone
-        netCon.interpret(msg);
+        netCon.interpret(msg, user);
         if (msg.substr(0,4) == "EXIT"){
             cont = false;
         }

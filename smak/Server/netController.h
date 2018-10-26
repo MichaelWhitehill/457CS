@@ -7,6 +7,7 @@
 
 #include <string>
 #include "srvState.h"
+#include "../rapidjson/document.h"
 
 class netController {
 public:
@@ -20,7 +21,7 @@ public:
      * Takes incoming network traffic and determines the function to call
      * @param cmd incoming command
      */
-    void interpret(const std::string& cmd);
+    void interpret(const std::string& cmd, std::shared_ptr<User> fromSession);
 
     /**
      * Closes the connection to a tcpUser socket by closing the FD, and removing it from the srvState list of clients
@@ -38,6 +39,8 @@ private:
      * @param toBroadcast the string to be sent
      */
     void broadcastMessage(const std::string& toBroadcast);
+
+    void opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser);
 
 };
 

@@ -3,11 +3,27 @@
 //
 
 #include "netController.h"
+#include "../rapidjson/document.h"
 
-void netController::interpret(const std::string &cmd) {
+#define OP "OP"
+#define OP_SETNAME "SETNAME"
+
+void netController::interpret(const std::string &cmd, std::shared_ptr<User> fromUser) {
     // TODO: everything
+    // My Dommy's name is jason
+    rapidjson::Document jsonDom;
+    jsonDom.Parse(cmd.c_str());
+    if(jsonDom.IsObject()){
+        assert(jsonDom.HasMember(OP));
+        assert(jsonDom[OP].IsString());
+        std::string op = jsonDom[OP].GetString();
+        if (op == OP_SETNAME)
+            opSetName(jsonDom, fromUser);
+
+    } else {
+        this->broadcastMessage(serverState->getChatLog());
+    }
     serverState->appendToChat(cmd);
-    this->broadcastMessage(serverState->getChatLog());
 }
 
 
@@ -31,4 +47,21 @@ void netController::closeUserConection(std::shared_ptr<User> userToClose) {
     unsigned long con_count = serverState->getUsers().size();
     std::string s = "There are " + std::to_string(con_count) + " connections";
     broadcastMessage(s);
+}
+
+void netController::opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser) {
+    const std::string NAME_FIELD = "Name";
+
+    fromUser.get()->sendString("Your name used to be: " + fromUser.get()->getName());
+
+    std::string newName;
+    assert(jsonDom.HasMember(NAME_FIELD.c_str()));
+    assert(jsonDom[NAME_FIELD.c_str()].IsString());
+    newName = jsonDom[NAME_FIELD.c_str()].GetString();
+
+    fromUser.get()->setName(newName);
+
+    fromUser.get()->sendString("Your new name is to be: " + fromUser.get()->getName());
+
+
 }

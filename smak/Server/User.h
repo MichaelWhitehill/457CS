@@ -15,6 +15,7 @@ public:
     void closeSession();
     void setName(const std::string& name);
     std::shared_ptr<cs457::tcpUserSocket> getSocket();
+    std::string getName() { return username;}
 
     void sendString(const std::string& toSend);
 
