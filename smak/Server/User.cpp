@@ -14,10 +14,6 @@ void User::closeSession() {
     session.get()->closeSocket();
 }
 
-std::shared_ptr<cs457::tcpUserSocket> User::getSocket() {
-    return session;
-}
-
 void User::setName(const std::string& name) {
     username = name;
 }
