@@ -24,6 +24,6 @@ void User::sendString(const std::string &toSend) {
     senderThread.join();
 }
 
-std::shared_ptr<cs457::tcpUserSocket> User::getSesson() {
+std::shared_ptr<cs457::tcpUserSocket> User::getSession() {
     return session;
 }

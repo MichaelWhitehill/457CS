@@ -34,7 +34,7 @@ public:
      * This function should really only be used for listening to the port
      * @return A shared pointer to the tcpUserSocket. Intended for listening
      */
-    std::shared_ptr<cs457::tcpUserSocket> getSesson();
+    std::shared_ptr<cs457::tcpUserSocket> getSession();
 
     std::string getName() { return username;}
 

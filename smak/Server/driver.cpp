@@ -22,7 +22,7 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
     bool cont =true ;
     while (cont)
     {
-        tie(msg,val) = user.get()->getSesson().get()->recvString();;
+        tie(msg,val) = user.get()->getSession().get()->recvString();;
         std::cout << "Server Received[" << msg <<"]\n";
 
         // Only the client who sent the message will get this response
