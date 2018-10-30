@@ -23,3 +23,7 @@ void User::sendString(const std::string &toSend) {
     // Every thread must be joined/closed before continuing to the next
     senderThread.join();
 }
+
+std::shared_ptr<cs457::tcpUserSocket> User::getSession() {
+    return session;
+}
