@@ -46,7 +46,7 @@ void netController::broadcastMessage(const std::string &toBroadcast) {
 
 void netController::closeUserConection(std::shared_ptr<User> userToClose) {
     userToClose.get()->sendString("GOODBYE");
-    auto socket = userToClose.get()->getSesson();
+    auto socket = userToClose.get()->getSession();
     socket.get()->closeSocket();
     serverState->removeUser(userToClose);
 
