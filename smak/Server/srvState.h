@@ -39,9 +39,9 @@ namespace smak{
          */
         void appendToChat(const std::string& str);
 
-        void addChannel(smak::Channel& channel);
+        void addChannel(std::shared_ptr<smak::Channel> channel);
 
-        std::vector<smak::Channel>& getChannels();
+        std::vector<shared_ptr<smak::Channel>> getChannels();
 
         /**
          * Gives back a reference to the chat log. It's const
@@ -58,7 +58,7 @@ namespace smak{
         // using a pointer for the threadList is UNTESTED
         std::vector<std::unique_ptr<std::thread>>* threadList_p;
         // A list of channels on the server
-        std::vector<smak::Channel> channelList;
+        std::vector<shared_ptr<smak::Channel>> channelList;
         std::string chatLog;
     };
 }

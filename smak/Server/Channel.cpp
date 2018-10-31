@@ -14,15 +14,21 @@ void smak::Channel::join(std::shared_ptr<smak::User> &user) {
     userList.insert(user);
 }
 
-void smak::Channel::leave(std::shared_ptr<const smak::User> &user) {
+void smak::Channel::leave(std::shared_ptr<smak::User> &user) {
     userList.erase(userList.begin(), userList.find(user));
 }
 
-const std::set<std::shared_ptr<const smak::User>> &smak::Channel::getUsers() {
+const std::set<std::shared_ptr<smak::User>> &smak::Channel::getUsers() {
     return userList;
 }
 
 std::string smak::Channel::getName() {
     return channelName;
+}
+
+void const smak::Channel::sendMessage(const std::string &message) {
+    for (std::shared_ptr<smak::User> user : userList){
+        user.get()->sendString(message);
+    }
 }
 

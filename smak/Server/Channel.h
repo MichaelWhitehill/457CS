@@ -15,12 +15,13 @@ namespace smak{
     public:
         Channel(const std::string& channelName);
         void join(std::shared_ptr<smak::User>& user);
-        void leave(std::shared_ptr<const smak::User>& user);
-        const std::set<std::shared_ptr<const smak::User>>& getUsers();
+        void leave(std::shared_ptr<smak::User>& user);
+        const std::set<std::shared_ptr<smak::User>>& getUsers();
+        void const sendMessage(const std::string& message);
         std::string getName();
 
     private:
-        std::set<std::shared_ptr<const smak::User>> userList;
+        std::set<std::shared_ptr<smak::User>> userList;
         std::string channelName;
     };
 }

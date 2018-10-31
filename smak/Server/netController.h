@@ -48,6 +48,8 @@ namespace smak{
         void opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser);
 
         void opJoin(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opMsg(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser);
     };
 }
 
