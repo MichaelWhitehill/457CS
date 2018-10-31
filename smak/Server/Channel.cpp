@@ -10,19 +10,19 @@ smak::Channel::Channel(const std::string &channelName) {
     this->channelName = channelName;
 }
 
-void smak::Channel::join(std::shared_ptr<const smak::User> &user) {
-    userList.push_back(user);
+void smak::Channel::join(std::shared_ptr<smak::User> &user) {
+    userList.insert(user);
 }
 
 void smak::Channel::leave(std::shared_ptr<const smak::User> &user) {
-    for (size_t i = 0; i < userList.size(); ++i){
-        if(user == userList[i]){
-            userList.erase(userList.begin() + i);
-        }
-    }
+    userList.erase(userList.begin(), userList.find(user));
 }
 
-const std::vector<std::shared_ptr<const smak::User>> &smak::Channel::getUsers() {
+const std::set<std::shared_ptr<const smak::User>> &smak::Channel::getUsers() {
     return userList;
+}
+
+std::string smak::Channel::getName() {
+    return channelName;
 }
 
