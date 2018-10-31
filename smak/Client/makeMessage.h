@@ -11,34 +11,52 @@
 
 // using namespace rapidjson;
 
-//AWAY
-//INVITE
-//JOIN
-//KICK
-//KILL
-//KNOCK
-//NICK
-//NOTICE
-//PART
-//OPER
-//PASS
-//PRIVMSG
-//QUIT
-//SETNAME
-//TOPIC
-//USER
-//USERHOST
-//USERIP
-//USERS
-//WALLOPS
-//WHO
-//WHOIS
-
-
-
 class makeMessage {
 
-public : static std::string test();
+public : static std::string AWAY(std:: string passed);
+
+public : static std::string INVITE(std::string nick, std::string channel);
+
+public : static std::string JOIN();
+
+public : static std::string KICK();
+
+public : static std::string KILL();
+
+public : static std::string KNOCK();
+
+public : static std::string NICK();
+
+public : static std::string NOTICE();
+
+public : static std::string PART();
+
+public : static std::string OPER();
+
+public : static std::string PASS();
+
+public : static std::string PRIVMSG();
+
+public : static std::string QUIT();
+
+public : static std::string SETNAME();
+
+public : static std::string TOPIC();
+
+public : static std::string USER();
+
+public : static std::string USERHOST();
+
+public : static std::string USERIP();
+
+public : static std::string USERS();
+
+public : static std::string WALLOPS();
+
+public : static std::string WHO();
+
+public : static std::string WHOIS();
+
 
 
 

@@ -40,7 +40,8 @@ int client::clientMain(int argc, char *argv[])
 {
 
 
-    std::cout<<makeMessage::test()<<std::endl;
+    std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
+
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
