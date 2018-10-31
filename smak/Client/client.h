@@ -33,7 +33,7 @@ public:
 
     static std::string getTime();
 
-    static void initialize(std::map <std::string, ops> *mapString);
+    static void initialize(std::map <std::string, ops> & mapString);
 
         struct clientInfo{};
 };

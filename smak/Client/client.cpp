@@ -43,7 +43,9 @@ static std::map <std::string, ops> mapString;
 int client::clientMain(int argc, char *argv[])
 {
     //INITIALIZE MAPSTRING:
-    initialize(&mapString);
+    initialize(mapString);
+    std::cout << mapString["WALLOPS"] << std::endl;
+
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
@@ -224,6 +226,7 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
 
 
 void client::writeSock(int sockFd, const int* disconnect) {
+
     ssize_t errNo;
     std::string input;
 
@@ -234,18 +237,15 @@ void client::writeSock(int sockFd, const int* disconnect) {
 
         std::cout<<"Please enter the OP code: ";
         std::getline(std::cin, input);
-        input += "\n";
+        //input += "\n";
+
+        auto it = mapString.find(input);
 
 
-        std:: cout << "MAP VALUE IS : " << mapString[input] << std::endl;
-
-        if(input.empty()){error("ERROR: User input was invalid");}
+        if(input.empty() || it == mapString.end()){error("ERROR: User input was invalid");}
         else{
-            int n = input.length();
-            char comp [n+1];
-            strcpy(comp, input.c_str());
 
-            switch(mapString[comp]){
+            switch(it->second){
 
                 case HELP: {
                     std::cout
@@ -416,7 +416,7 @@ std::string client::getTime() {
     return ctime;
 }
 
-void client::initialize(std::map <std::string, ops> *mapString) {
+void client::initialize(std::map <std::string, ops>& mapString) {
 
     mapString["MSG"] = MSG;
     mapString["AWAY"] = AWAY;
@@ -443,8 +443,6 @@ void client::initialize(std::map <std::string, ops> *mapString) {
     mapString["WALLOPS"] = WALLOPS;
     mapString["WHO"] = WHO;
     mapString["WHOIS"] = WHOIS;
-
-    std::cout << mapString["WALLOPS"] << std::endl;
 
 }
 
