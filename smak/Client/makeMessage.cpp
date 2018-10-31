@@ -5,13 +5,48 @@
 #include "makeMessage.h"
 using namespace rapidjson;
 
-std::string makeMessage::AWAY(std:: string passed) {
+//#define for each JSON string in utils.h
+//Test JOIN MSG SETNAME
+std::string makeMessage::MSG() {
+
+    std::string json = "{\"OP\":\"MSG\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter the channel to send MSG: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+    std::cout << "Please enter the message to channel: " << channel << " to" << std::endl;
+    std::string msg;
+    std::getline(std::cin, msg);
+
+    rapidjson::Value contact;
+    contact = StringRef(channel.c_str());
+    d.AddMember("channel", contact, d.GetAllocator());
+
+    rapidjson::Value val;
+    val = StringRef(msg.c_str());
+    d.AddMember("message", val, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+
+}
+
+std::string makeMessage::AWAY() {
     std::string json = "{\"OP\":\"AWAY\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
 
+    std::string input;
+    std::cout << "Please enter the AWAY string msg: " << std::endl;
+    std::getline(std::cin, input);
+
     rapidjson::Value contact;
-    contact = StringRef(passed.c_str());
+    contact = StringRef(input.c_str());
     d.AddMember("message", contact, d.GetAllocator());
 
     StringBuffer buffer;
@@ -21,11 +56,18 @@ std::string makeMessage::AWAY(std:: string passed) {
     return buffer.GetString();
 }
 
-std::string makeMessage::INVITE(std::string nick, std::string channel) {
+std::string makeMessage::INVITE() {
 
     std::string json = "{\"OP\":\"INVITE\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the nickname to INVITE: " << std::endl;
+    std::string nick;
+    std::getline(std::cin, nick);
+    std::cout << "Please enter the channel name to INVITE: " << nick << " to" << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
 
     rapidjson::Value contact;
     contact = StringRef(nick.c_str());
@@ -42,11 +84,15 @@ std::string makeMessage::INVITE(std::string nick, std::string channel) {
     return buffer.GetString();
 }
 
-std::string makeMessage::JOIN(std::string channel) {
+std::string makeMessage::JOIN() {
 
     std::string json = "{\"OP\":\"JOIN\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the channel to JOIN: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
 
     rapidjson::Value val;
     val = StringRef(channel.c_str());
@@ -59,11 +105,19 @@ std::string makeMessage::JOIN(std::string channel) {
     return buffer.GetString();
 }
 
-std::string makeMessage::KICK(std::string client, std::string channel) {
+std::string makeMessage::KICK() {
 
     std::string json = "{\"OP\":\"KICK\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the client to KICK: " << std::endl;
+    std::string client;
+    std::getline(std::cin, client);
+    std::cout << "Please enter the channel name to KICK: " << client << " from" << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
 
     rapidjson::Value contact;
     contact = StringRef(client.c_str());
@@ -118,7 +172,23 @@ std::string makeMessage::QUIT() {
 }
 
 std::string makeMessage::SETNAME() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"SETNAME\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::string name;
+    std::cout << "Please enter the name you want to change to: " << std::endl;
+    std::getline(std::cin, name);
+
+    rapidjson::Value contact;
+    contact = StringRef(name.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::TOPIC() {
@@ -152,3 +222,5 @@ std::string makeMessage::WHO() {
 std::string makeMessage::WHOIS() {
     return std::__cxx11::string();
 }
+
+
