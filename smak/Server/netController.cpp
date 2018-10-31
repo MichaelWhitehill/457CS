@@ -8,6 +8,12 @@
 #define OP "OP"
 #define OP_SETNAME "SETNAME"
 #define OP_JOIN "JOIN"
+#define OP_MSG "MSG"
+
+
+#define F_CANNEL "channel"
+#define F_NAME "name"
+#define F_MESSAGE "message"
 
 void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak::User> fromUser) {
     // TODO: everything
@@ -25,6 +31,10 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
             opSetName(jsonDom, fromUser);
         else if (op == OP_JOIN)
             opJoin(jsonDom, fromUser);
+        else if (op == OP_MSG){
+            opMsg(jsonDom, fromUser);
+        }
+
 
     }
     // This is legacy. It just broadcasts messages that are not json
@@ -64,9 +74,9 @@ void smak::netController::opSetName(const rapidjson::Document& jsonDom, std::sha
     fromUser.get()->sendString("Your name used to be: " + fromUser.get()->getName());
 
     std::string newName;
-    assert(jsonDom.HasMember(NAME_FIELD.c_str()));
-    assert(jsonDom[NAME_FIELD.c_str()].IsString());
-    newName = jsonDom[NAME_FIELD.c_str()].GetString();
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    newName = jsonDom[F_NAME].GetString();
 
     fromUser.get()->setName(newName);
 
@@ -76,23 +86,49 @@ void smak::netController::opSetName(const rapidjson::Document& jsonDom, std::sha
 }
 
 void smak::netController::opJoin(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser) {
-    const std::string CHANEL_FIELD = "channel";
-
-    assert(jsonDom.HasMember(CHANEL_FIELD.c_str()));
-    assert(jsonDom[CHANEL_FIELD.c_str()].IsString());
-    std::string channelName = jsonDom[CHANEL_FIELD.c_str()].GetString();
+    assert(jsonDom.HasMember(F_CANNEL));
+    assert(jsonDom[F_CANNEL].IsString());
+    std::string channelName = jsonDom[F_CANNEL].GetString();
 
     auto existingChannels = serverState->getChannels();
     bool joined = false;
     for (auto channel : existingChannels){
-        if (channel.getName() == channelName){
-            channel.join(fromUser);
+        if(channel.get()->getName() == channelName){
+            channel.get()->join(fromUser);
             joined = true;
+            fromUser.get()->sendString("You joined channel: " + channelName);
+            break;
         }
     }
     if (!joined){
         smak::Channel channel(channelName);
         channel.join(fromUser);
-        serverState->addChannel(channel);
+        fromUser.get()->sendString("You created channel: " + channelName);
+        serverState->addChannel(make_shared<smak::Channel>(channel));
     }
+}
+
+void smak::netController::opMsg(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser){
+    assert(jsonDom.HasMember(F_CANNEL));
+    assert(jsonDom[F_CANNEL].IsString());
+    std::string channelName = jsonDom[F_CANNEL].GetString();
+
+    assert(jsonDom.HasMember(F_MESSAGE));
+    assert(jsonDom[F_MESSAGE].IsString());
+    std::string message = jsonDom[F_MESSAGE].GetString();
+
+    auto existingChannels = serverState->getChannels();
+
+    bool sent = false;
+    for (auto channel : existingChannels){
+        if (channel.get()->getName() == channelName){
+            channel.get()->sendMessage(message);
+            sent = true;
+            break;
+        }
+    }
+    if (!sent){
+        throw std::string("Could not send message to chat: " + channelName);
+    }
+
 }
