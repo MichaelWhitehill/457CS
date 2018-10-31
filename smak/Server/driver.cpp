@@ -14,7 +14,7 @@
 bool ready = true;
 
 // TODO: Clean up this function
-int cclient(std::shared_ptr<User> user,int id, netController netCon)
+int cclient(const std::shared_ptr<smak::User> &user,int id, smak::netController netCon)
 {
     std::cout << "Waiting for message from Client Thread" << id << std::endl;
     std::string msg;
@@ -40,7 +40,7 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
             cont = false;
         }
     }
-    netCon.closeUserConection(user);
+    netCon.closeUserConnection(user);
     std::cout<<"Server disconnected from client: " << id << "\n";
     return 1;
 }
@@ -49,11 +49,11 @@ int cclient(std::shared_ptr<User> user,int id, netController netCon)
 
 
 
-int driver::driverMain(int argc, char **argv)
+int smak::driver::driverMain(int argc, char **argv)
 {
     // TODO: Check arg count (or just parse the args and forget it)
     std::cout << "Initializing Socket" << std::endl;
-    cs457::tcpServerSocket mysocket(atoi(argv[1])); //Set up a TCP socket on port 2000 (FOR SERVER)
+    smak::tcpServerSocket mysocket(atoi(argv[1])); //Set up a TCP socket on port 2000 (FOR SERVER)
     std::cout << "Binding Socket" << std::endl;
     // TODO: Err check. Use main::Error
     mysocket.bindSocket();  //Bind the created SERVER socket "mysocket"
@@ -72,7 +72,7 @@ int driver::driverMain(int argc, char **argv)
     {
 
         // TODO: Err check for val<0 Use main::Error
-        std::shared_ptr<cs457::tcpUserSocket> clientSocket;
+        std::shared_ptr<smak::tcpUserSocket> clientSocket;
         int val;
         // tuple of socket and its FD
         // TODO: Err check. Use main::Error

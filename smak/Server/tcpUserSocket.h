@@ -13,7 +13,7 @@
 #include <mutex>
 
 
-namespace cs457
+namespace smak
 {
     using namespace std;
 

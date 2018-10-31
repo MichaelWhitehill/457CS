@@ -11,13 +11,13 @@
 
 
 //class forwards
-namespace cs457
+namespace smak
 {
     class tcpUserSocket;
 
 }
 
-namespace cs457
+namespace smak
 {
     using namespace std;
     class tcpServerSocket
@@ -27,7 +27,7 @@ namespace cs457
         tcpServerSocket(string networkAddress, uint portNumber);
         int bindSocket();
         int listenSocket();
-        tuple<shared_ptr<cs457::tcpUserSocket>,int> acceptSocket();
+        tuple<shared_ptr<smak::tcpUserSocket>,int> acceptSocket();
 
     private:
         void init();

@@ -5,25 +5,25 @@
 #include <thread>
 #include "User.h"
 
-User::User(std::shared_ptr<cs457::tcpUserSocket> session, const std::string &uName) {
+smak::User::User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uName) {
     this->session = session;
     username = uName;
 }
 
-void User::closeSession() {
+void smak::User::closeSession() {
     session.get()->closeSocket();
 }
 
-void User::setName(const std::string& name) {
+void smak::User::setName(const std::string& name) {
     username = name;
 }
 
-void User::sendString(const std::string &toSend) {
-    std::thread senderThread = std::thread(&cs457::tcpUserSocket::sendString, session, toSend, true);
+void smak::User::sendString(const std::string &toSend) {
+    std::thread senderThread = std::thread(&smak::tcpUserSocket::sendString, session, toSend, true);
     // Every thread must be joined/closed before continuing to the next
     senderThread.join();
 }
 
-std::shared_ptr<cs457::tcpUserSocket> User::getSession() {
+std::shared_ptr<smak::tcpUserSocket> smak::User::getSession() {
     return session;
 }

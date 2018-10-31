@@ -5,36 +5,36 @@
 
 using namespace std;
 
-cs457::tcpUserSocket::tcpUserSocket() {};
+smak::tcpUserSocket::tcpUserSocket() {};
 
-void cs457::tcpUserSocket::setSocket(int sckt)
+void smak::tcpUserSocket::setSocket(int sckt)
 {
     userSocket=sckt;
 };
 
 
-socklen_t cs457::tcpUserSocket::getLenghtPointer()
+socklen_t smak::tcpUserSocket::getLenghtPointer()
 {
     socklen_t len = sizeof(userAddress);
     return len;
 };
 
-int cs457::tcpUserSocket::getSocket()
+int smak::tcpUserSocket::getSocket()
 {
     return userSocket;
 };
-int cs457::tcpUserSocket::closeSocket()
+int smak::tcpUserSocket::closeSocket()
 {
     return close(userSocket);
 };
 
-void cs457::tcpUserSocket::setUserInfoIPv4(string address, uint16_t port)
+void smak::tcpUserSocket::setUserInfoIPv4(string address, uint16_t port)
 {
     clientAddressIPv4 = address;
     clientPortIPv4 = port;
 };
 
-std::tuple<string,ssize_t> cs457::tcpUserSocket::recvString(int bufferSize, bool useMutex)
+std::tuple<string,ssize_t> smak::tcpUserSocket::recvString(int bufferSize, bool useMutex)
 {
     char stringBuffer[bufferSize];
     memset(stringBuffer, 0, sizeof(stringBuffer));    //change made here. Zeros out buffer.
@@ -57,7 +57,7 @@ std::tuple<string,ssize_t> cs457::tcpUserSocket::recvString(int bufferSize, bool
 };
 
 
-ssize_t cs457::tcpUserSocket::sendString(const string & data, bool useMutex)
+ssize_t smak::tcpUserSocket::sendString(const string & data, bool useMutex)
 {
     //https://stackoverflow.com/questions/7352099/stdstring-to-char
     if (data.size() == 0) return 0;
@@ -78,7 +78,7 @@ ssize_t cs457::tcpUserSocket::sendString(const string & data, bool useMutex)
     return rval;
 }
 
-string cs457::tcpUserSocket::getUniqueIdentifier()
+string smak::tcpUserSocket::getUniqueIdentifier()
 {
     //this unique identifier is arbitrary 
     //and it may not be useful for chat program (see other classes)
@@ -87,7 +87,7 @@ string cs457::tcpUserSocket::getUniqueIdentifier()
     return identifier;
 };
 
-struct sockaddr * cs457::tcpUserSocket::getAddressPointer()
+struct sockaddr * smak::tcpUserSocket::getAddressPointer()
 {
     return ((struct sockaddr *) &userAddress);
 };
