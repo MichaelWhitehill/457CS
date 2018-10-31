@@ -39,7 +39,7 @@ namespace smak{
          */
         void appendToChat(const std::string& str);
 
-        void addChannel(smak::Channel channel);
+        void addChannel(smak::Channel& channel);
 
         std::vector<smak::Channel>& getChannels();
 

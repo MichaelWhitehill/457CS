@@ -6,6 +6,7 @@
 #define SMAK_CHANNEL_H
 
 #include <string>
+#include <set>
 #include "User.h"
 
 
@@ -13,12 +14,13 @@ namespace smak{
     class Channel {
     public:
         Channel(const std::string& channelName);
-        void join(std::shared_ptr<const smak::User>& user);
+        void join(std::shared_ptr<smak::User>& user);
         void leave(std::shared_ptr<const smak::User>& user);
-        const std::vector<std::shared_ptr<const smak::User>>& getUsers();
+        const std::set<std::shared_ptr<const smak::User>>& getUsers();
+        std::string getName();
 
     private:
-        std::vector<std::shared_ptr<const smak::User>> userList;
+        std::set<std::shared_ptr<const smak::User>> userList;
         std::string channelName;
     };
 }

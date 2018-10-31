@@ -7,6 +7,7 @@
 
 #define OP "OP"
 #define OP_SETNAME "SETNAME"
+#define OP_JOIN "JOIN"
 
 void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak::User> fromUser) {
     // TODO: everything
@@ -22,6 +23,8 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
 
         if (op == OP_SETNAME)
             opSetName(jsonDom, fromUser);
+        else if (op == OP_JOIN)
+            opJoin(jsonDom, fromUser);
 
     }
     // This is legacy. It just broadcasts messages that are not json
@@ -70,4 +73,26 @@ void smak::netController::opSetName(const rapidjson::Document& jsonDom, std::sha
     fromUser.get()->sendString("Your new name is to be: " + fromUser.get()->getName());
 
 
+}
+
+void smak::netController::opJoin(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser) {
+    const std::string CHANEL_FIELD = "channel";
+
+    assert(jsonDom.HasMember(CHANEL_FIELD.c_str()));
+    assert(jsonDom[CHANEL_FIELD.c_str()].IsString());
+    std::string channelName = jsonDom[CHANEL_FIELD.c_str()].GetString();
+
+    auto existingChannels = serverState->getChannels();
+    bool joined = false;
+    for (auto channel : existingChannels){
+        if (channel.getName() == channelName){
+            channel.join(fromUser);
+            joined = true;
+        }
+    }
+    if (!joined){
+        smak::Channel channel(channelName);
+        channel.join(fromUser);
+        serverState->addChannel(channel);
+    }
 }
