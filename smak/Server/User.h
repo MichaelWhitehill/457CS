@@ -42,7 +42,8 @@ namespace smak{
          * Sends  a string to the specified user. It uses multithreading and all that jazz
          * @param toSend const string reference to be sent to the user
          */
-        void sendString(const std::string& toSend);
+        const void sendString(const std::string& toSend);
+
 
 
     private:

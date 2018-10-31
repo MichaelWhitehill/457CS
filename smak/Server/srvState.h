@@ -9,6 +9,7 @@
 #include <thread>
 #include "tcpUserSocket.h"
 #include "User.h"
+#include "Channel.h"
 
 namespace smak{
     class srvState {
@@ -38,6 +39,10 @@ namespace smak{
          */
         void appendToChat(const std::string& str);
 
+        void addChannel(smak::Channel channel);
+
+        std::vector<smak::Channel>& getChannels();
+
         /**
          * Gives back a reference to the chat log. It's const
          * @return Const reference to the current chat log
@@ -52,9 +57,9 @@ namespace smak{
         std::vector<std::shared_ptr<User>> users;
         // using a pointer for the threadList is UNTESTED
         std::vector<std::unique_ptr<std::thread>>* threadList_p;
+        // A list of channels on the server
+        std::vector<smak::Channel> channelList;
         std::string chatLog;
-
-
     };
 }
 

@@ -36,3 +36,13 @@ void smak::srvState::removeUser(std::shared_ptr<User> user) {
     }
 }
 
+void smak::srvState::addChannel(smak::Channel channel) {
+    channelList.push_back(channel);
+}
+
+std::vector<smak::Channel> &smak::srvState::getChannels() {
+    return channelList;
+}
+
+
+

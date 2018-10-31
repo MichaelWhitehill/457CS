@@ -18,7 +18,7 @@ void smak::User::setName(const std::string& name) {
     username = name;
 }
 
-void smak::User::sendString(const std::string &toSend) {
+const void smak::User::sendString(const std::string &toSend) {
     std::thread senderThread = std::thread(&smak::tcpUserSocket::sendString, session, toSend, true);
     // Every thread must be joined/closed before continuing to the next
     senderThread.join();
