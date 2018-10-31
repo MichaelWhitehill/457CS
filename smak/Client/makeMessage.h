@@ -13,9 +13,9 @@
 
 class makeMessage {
 
-public : static std::string AWAY(std:: string passed);
+public : static std::string AWAY();
 
-public : static std::string INVITE(std::string nick, std::string channel);
+public : static std::string INVITE();
 
 public : static std::string JOIN(std::string channel);
 

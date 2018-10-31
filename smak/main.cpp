@@ -22,7 +22,7 @@ int main (int argc, char* argv[]){
     }
     std::string toStart = argv[argc-1];
     if(toStart == "srv"){
-        return driver::driverMain(newArgc, newArgv);
+        return smak::driver::driverMain(newArgc, newArgv);
     }
     else if(toStart == "clt"){
         return client::clientMain(newArgc, newArgv);

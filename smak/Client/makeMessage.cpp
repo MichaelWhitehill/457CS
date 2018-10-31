@@ -5,13 +5,17 @@
 #include "makeMessage.h"
 using namespace rapidjson;
 
-std::string makeMessage::AWAY(std:: string passed) {
+std::string makeMessage::AWAY() {
     std::string json = "{\"OP\":\"AWAY\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
 
+    std::string input;
+    std::cout << "Please enter the AWAY string msg: " << std::endl;
+    std::getline(std::cin, input);
+
     rapidjson::Value contact;
-    contact = StringRef(passed.c_str());
+    contact = StringRef(input.c_str());
     d.AddMember("message", contact, d.GetAllocator());
 
     StringBuffer buffer;
@@ -21,11 +25,18 @@ std::string makeMessage::AWAY(std:: string passed) {
     return buffer.GetString();
 }
 
-std::string makeMessage::INVITE(std::string nick, std::string channel) {
+std::string makeMessage::INVITE() {
 
     std::string json = "{\"OP\":\"INVITE\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the nickname to INVITE: " << std::endl;
+    std::string nick;
+    std::getline(std::cin, nick);
+    std::cout << "Please enter the channel name to INVITE: " << nick << " to" << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
 
     rapidjson::Value contact;
     contact = StringRef(nick.c_str());

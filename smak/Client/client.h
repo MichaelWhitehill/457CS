@@ -31,6 +31,8 @@ public:
 
     static std::string getTime();
 
+    static void initialize();
+
         struct clientInfo{};
 };
 

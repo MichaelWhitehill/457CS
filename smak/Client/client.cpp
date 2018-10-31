@@ -36,7 +36,7 @@ struct clientInfo{
 
 static auto t = time(NULL); //var for current time
 
-static enum ops{HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
+enum ops{AWAY,JSON,HELP,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
 static std::map <std::string, ops> mapString;
 
 
@@ -44,11 +44,13 @@ int client::clientMain(int argc, char *argv[])
 {
  //   std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
 
+    //INITIALIZE MAPSTRING:
+    initialize();
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
         exit(0);
-    }std::cout <<"[Starting Client]" << std::endl;
+    }else std::cout <<"[Starting Client]" << std::endl;
 
 
     parseArgsCmdLine(argc, argv); //Parsing manually entered args to populate config file path by default
@@ -71,6 +73,7 @@ int client::clientMain(int argc, char *argv[])
                 error("ERROR: cannot open config File");
              exit(1);}
 
+
        for(std::string line; std::getline(read, line);){
         //parse the file line by line and populate vars vs messing with pointers
         std::vector<std::string> parse = split(line);
@@ -81,17 +84,20 @@ int client::clientMain(int argc, char *argv[])
             clientState.hostName= strcpy(pc, &temp[0]); //TODO: remove redundant steps above?
         }
 
+
         else if(parse[0]=="-u"){clientState.userName = parse[1];}
         else if(parse[0]=="-p"){clientState.port = stoi(parse[1]);}
         else if(parse[0]=="-t"){clientState.testFile = parse[1];}
         else if(parse[0]=="-L"){clientState.logFile = parse[1];}
+       // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
         else error("ERROR: Incorrect formatting in .config file");
 
        }
+
+
        std::string uname = "[LOG]_";
        uname.append(clientState.userName);
        clientState.logFile.append(uname);
-
 //       std::cout<<"\n[Client Variables set by .config file:]"<<std::endl
 //       << "Client hostName: " << clientState.hostName << std::endl
 //       << "Client userName: " << clientState.userName << std::endl
@@ -100,9 +106,14 @@ int client::clientMain(int argc, char *argv[])
 //       << "Test File name: " << clientState.testFile <<std::endl
 //       << "Log File name: " << clientState.logFile << "\n" <<std::endl;
    }
+   else error("ERROR: Config file is unreadable");
+
+
 
    //create log file and set member var if file does not exist already: - **LogFile variable should include directory path!!
-   if(!fileExists(clientState.logFile)){
+    std:: cout << clientState.logFile << std::endl;
+
+    if(!fileExists(clientState.logFile)){
        clientState.logFileWrite = std::ofstream(clientState.logFile);
        if(!clientState.logFileWrite.is_open()){error("ERROR: Unable to open log File for client"); exit(1);}
        else        std::cout<< "New Log File opened for writing\n" << std::endl;
@@ -123,7 +134,7 @@ int client::clientMain(int argc, char *argv[])
 
            clientState.logFileWrite << "\n[" << getTime() << "] STARTING LOG FILE: "<< std::endl
                    <<"Client hostName: " << clientState.hostName << std::endl
-                   << "Client Port: " << clientState.port << std::endl;
+                   << "Client Port: " << clientState.port <<"\n\n"<< std::endl;
        }
    }
 
@@ -216,35 +227,65 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
 
 void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
+    std::string input;
+
     while(true){
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
         if(*disconnect != 0)
             return;
-        std::cout<<"Please enter the message: ";
-        std::string input;
+
+        std::cout<<"Please enter the OP code: ";
         std::getline(std::cin, input);
         input += "\n";
 
-        std::istringstream p(input);
-        std::vector<std::string> parse  ((std::istream_iterator<std::string>(p)), std::istream_iterator<std::string>());
 
-        if(parse.empty()){error("ERROR: User input was invalid");}
+        if(input.empty()){error("ERROR: User input was invalid");}
         else{
-            switch(mapString[parse.at(0)]){
+            switch(mapString[input]){
 
-                case HELP:
-                    std::cout<< "Valid client operations are as follows: HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,"
-                                "OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS\n Detailed use of each of these ops is forthcoming but will not be written today" <<std::endl;
+                case HELP: {
+                    std::cout
+                            << "Valid client operations are as follows: HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,"
+                               "OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS\n Detailed use of each of these ops is forthcoming but will not be written today"
+                            << std::endl;
+                    input = "";
                     break;
-                case JSON:
-                    std::cout<<"Test Json method has been called, passing: " << parse.at(1) << " to server" <<std::endl;
-                    errNo = write(sockFd, parse.at(1).c_str(), parse.at(1).length());
+                }
+
+                case JSON: {
+                    std::cout << "Please enter the JSON string for testing Server: " << std::endl;
+                    input = "";
+                    std::getline(std::cin, input);
+                    input += "\n";
+                    std::cout << "Test Json method has been called, passing: " << input << " to server" << std::endl;
+                    errNo = write(sockFd, input.c_str(), input.length());
                     if (errNo < 0)
-                        error("ERROR writing to socket");
+                        error("ERROR writing to socket in JSON");
 
+                    input = "";
+                    break;
+                }
 
+                case AWAY: {
 
+                    auto temp = makeMessage::AWAY();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in AWAY");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: AWAY: " << temp << std::endl;
+                    input = "";
+                    break;
+                }
 
+                case INVITE: {
+                    auto temp = makeMessage::INVITE();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in INVITE");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: INVITE: " << temp << std::endl;
+                    input = "";
+                    break;
+                }
 
 
 
@@ -335,6 +376,35 @@ std::string client::getTime() {
     ctime.erase(std::remove(ctime.begin(),ctime.end(),'\n'),ctime.end());
 
     return ctime;
+}
+
+void client::initialize() {
+
+    mapString["AWAY"] = AWAY;
+    mapString["JSON"] = JSON;
+    mapString["HELP"] = HELP;
+    mapString["INVITE"] = INVITE;
+    mapString["JOIN"] = JOIN;
+    mapString["KICK"] = KICK;
+    mapString["KILL"] = KILL;
+    mapString["KNOCK"] = KNOCK;
+    mapString["NICK"] = NICK;
+    mapString["NOTICE"] = NOTICE;
+    mapString["PART"] = PART;
+    mapString["OPER"] = OPER;
+    mapString["PASS"] = PASS;
+    mapString["PRIVMSG"] = PRIVMSG;
+    mapString["QUIT"] = QUIT;
+    mapString["SETNAME"] = SETNAME;
+    mapString["TOPIC"] = TOPIC;
+    mapString["USER"] = USER;
+    mapString["USERHOST"] = USERHOST;
+    mapString["USERIP"] = USERIP;
+    mapString["USERS"] = USERS;
+    mapString["WALLOPS"] = WALLOPS;
+    mapString["WHO"] = WHO;
+    mapString["WHOIS"] = WHOIS;
+
 }
 
 
