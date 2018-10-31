@@ -36,16 +36,14 @@ struct clientInfo{
 
 static auto t = time(NULL); //var for current time
 
-enum ops{AWAY,JSON,HELP,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
+// enum ops{HELP,JSON,MSG,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
 static std::map <std::string, ops> mapString;
 
 
 int client::clientMain(int argc, char *argv[])
 {
- //   std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
-
     //INITIALIZE MAPSTRING:
-    initialize();
+    initialize(&mapString);
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
@@ -239,16 +237,21 @@ void client::writeSock(int sockFd, const int* disconnect) {
         input += "\n";
 
 
+        std:: cout << "MAP VALUE IS : " << mapString[input] << std::endl;
+
         if(input.empty()){error("ERROR: User input was invalid");}
         else{
-            switch(mapString[input]){
+            int n = input.length();
+            char comp [n+1];
+            strcpy(comp, input.c_str());
+
+            switch(mapString[comp]){
 
                 case HELP: {
                     std::cout
                             << "Valid client operations are as follows: HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,"
                                "OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS\n Detailed use of each of these ops is forthcoming but will not be written today"
                             << std::endl;
-                    input = "";
                     break;
                 }
 
@@ -261,19 +264,24 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, input.c_str(), input.length());
                     if (errNo < 0)
                         error("ERROR writing to socket in JSON");
+                    break;
+                }
 
-                    input = "";
+                case MSG: {
+                    auto temp = makeMessage::MSG();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in MSG");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: MSG: " << temp << std::endl;
                     break;
                 }
 
                 case AWAY: {
-
                     auto temp = makeMessage::AWAY();
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in AWAY");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: AWAY: " << temp << std::endl;
-                    input = "";
                     break;
                 }
 
@@ -283,7 +291,35 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     if (errNo < 0)
                         error("ERROR writing to socket in INVITE");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: INVITE: " << temp << std::endl;
-                    input = "";
+                    break;
+                }
+
+                case JOIN: {
+                    auto temp = makeMessage::JOIN();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in JOIN");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: JOIN: " << temp << std::endl;
+                    break;
+                }
+
+                case KICK: {
+                    //TODO: add check for correct privileges to KICK a client
+
+                    auto temp = makeMessage::KICK();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in KICK");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: KICK: " << temp << std::endl;
+                    break;
+                }
+
+                case SETNAME:{
+                    auto temp = makeMessage::SETNAME();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in SETNAME");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: SETNAME: " << temp << std::endl;
                     break;
                 }
 
@@ -294,6 +330,8 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     exit(0);
 
             }
+            input = "";
+
         }
 
        // HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS
@@ -378,8 +416,9 @@ std::string client::getTime() {
     return ctime;
 }
 
-void client::initialize() {
+void client::initialize(std::map <std::string, ops> *mapString) {
 
+    mapString["MSG"] = MSG;
     mapString["AWAY"] = AWAY;
     mapString["JSON"] = JSON;
     mapString["HELP"] = HELP;
@@ -404,6 +443,8 @@ void client::initialize() {
     mapString["WALLOPS"] = WALLOPS;
     mapString["WHO"] = WHO;
     mapString["WHOIS"] = WHOIS;
+
+    std::cout << mapString["WALLOPS"] << std::endl;
 
 }
 

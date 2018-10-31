@@ -6,6 +6,8 @@
 #define SMAK_CLIENT_H
 #include <vector>
 #include <string>
+#include <map>
+enum ops{HELP,JSON,MSG,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
 
 class client {
 public:
@@ -31,7 +33,7 @@ public:
 
     static std::string getTime();
 
-    static void initialize();
+    static void initialize(std::map <std::string, ops> *mapString);
 
         struct clientInfo{};
 };
