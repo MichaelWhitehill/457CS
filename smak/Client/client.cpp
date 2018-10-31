@@ -14,6 +14,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <thread>
+#include <map>
 #include <iostream>
 #include<getopt.h>
 #include<fstream>
@@ -35,12 +36,13 @@ struct clientInfo{
 
 static auto t = time(NULL); //var for current time
 
+static enum ops{HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
+static std::map <std::string, ops> mapString;
+
 
 int client::clientMain(int argc, char *argv[])
 {
-
-
-    std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
+ //   std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
 
 
     if (argc < 2) {
@@ -49,7 +51,7 @@ int client::clientMain(int argc, char *argv[])
     }std::cout <<"[Starting Client]" << std::endl;
 
 
-    parseArgs(argc, argv); //Parsing manually entered args to populate config file path by default
+    parseArgsCmdLine(argc, argv); //Parsing manually entered args to populate config file path by default
 
 
    if(fileExists(clientState.configFile)&&!clientState.configFile.empty()){
@@ -126,7 +128,7 @@ int client::clientMain(int argc, char *argv[])
    }
 
 
-
+//______________________________________________________________________________________________________
    //FILES HAVE BEEN READ AND OPENED - SETUP CONNECTION WITH SERVER:
     ssize_t errNo;
 
@@ -161,7 +163,7 @@ int client::clientMain(int argc, char *argv[])
 
     //Closing logFile writer:
     clientState.logFileWrite.close();
-
+    return 0;
 
 }
 
@@ -184,11 +186,11 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
         std::cout<< "RECIEVED: "<<buffer<<std::endl;
         std::string recString = buffer;
 
-        //TODO: create switch statement:
+        //TODO: create switch statement for RECIEVING messages:
 
 
 
-        //std::endl automatically adds a \n and flushes the stream!
+        //std::endl automatically adds a \n and flushes the stream
         if (recString == "GOODBYE"){
             *disconnect = 1;
             clientState.logFileWrite << "[" << getTime() << "] RECV: " <<recString << "EXITING CLIENT" << std::endl;
@@ -203,6 +205,10 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
             }
         }
     }
+
+
+
+
 }
 
 
@@ -215,9 +221,43 @@ void client::writeSock(int sockFd, const int* disconnect) {
         if(*disconnect != 0)
             return;
         std::cout<<"Please enter the message: ";
-        std::string input = "";
+        std::string input;
         std::getline(std::cin, input);
         input += "\n";
+
+        std::istringstream p(input);
+        std::vector<std::string> parse  ((std::istream_iterator<std::string>(p)), std::istream_iterator<std::string>());
+
+        if(parse.empty()){error("ERROR: User input was invalid");}
+        else{
+            switch(mapString[parse.at(0)]){
+
+                case HELP:
+                    std::cout<< "Valid client operations are as follows: HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,"
+                                "OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS\n Detailed use of each of these ops is forthcoming but will not be written today" <<std::endl;
+                    break;
+                case JSON:
+                    std::cout<<"Test Json method has been called, passing: " << parse.at(1) << " to server" <<std::endl;
+                    errNo = write(sockFd, parse.at(1).c_str(), parse.at(1).length());
+                    if (errNo < 0)
+                        error("ERROR writing to socket");
+
+
+
+
+
+
+
+                default:
+                    error("ERROR: Client OP code not recognized, type HELP for usage instructions");
+                    exit(0);
+
+            }
+        }
+
+       // HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS
+
+
         errNo = write(sockFd, input.c_str(), input.size());
         if (errNo < 0)
             error("ERROR writing to socket");
@@ -231,7 +271,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
 
 
 
-void client::parseArgs(int argc, char *argv[]) {
+void client::parseArgsCmdLine(int argc, char *argv[]) {
     //processing arguments with getOpt:
 
     //Run switch statement below regardless of # of args provided so that configFile variable in struct is populated in either case:
@@ -266,8 +306,7 @@ void client::parseArgs(int argc, char *argv[]) {
                 break;
             }
             default  :
-                std::cerr
-                        << "Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile";
+                error("ERROR: Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile");
                 exit(0);
         }
     }

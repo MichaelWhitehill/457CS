@@ -23,7 +23,7 @@ public:
      */
     static void writeSock(int sockFd, const int* disconnect);
 
-    static void parseArgs(int argc, char *argv[]);
+    static void parseArgsCmdLine(int argc, char *argv[]);
 
     static std::vector<std::string> split(std::string const &input);
 

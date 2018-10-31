@@ -17,9 +17,9 @@ public : static std::string AWAY(std:: string passed);
 
 public : static std::string INVITE(std::string nick, std::string channel);
 
-public : static std::string JOIN();
+public : static std::string JOIN(std::string channel);
 
-public : static std::string KICK();
+public : static std::string KICK(std::string client, std::string channel);
 
 public : static std::string KILL();
 
