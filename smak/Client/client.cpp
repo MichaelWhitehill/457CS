@@ -22,11 +22,12 @@
 #include <iterator>
 #include "time.h"
 #include <algorithm>
+#include "makeMessage.h"
 
 
 struct clientInfo{
     char *hostName = nullptr;
-    std::string userName, configFile, testFile, logFile; //config File & test File parameter will be string to existing file
+    std::string userName, configFile, testFile, logFile, Away; //config File & test File parameter will be string to existing file
     int port = 0;    //destination server port
     std::ofstream logFileWrite;   //string logFile name - file writer will be used by many function calls
 }clientState;
@@ -37,6 +38,9 @@ static auto t = time(NULL); //var for current time
 
 int client::clientMain(int argc, char *argv[])
 {
+
+
+    std::cout<<makeMessage::INVITE("Jonathan", "channel 1")<<std::endl;
 
 
     if (argc < 2) {
@@ -161,6 +165,10 @@ int client::clientMain(int argc, char *argv[])
 
 }
 
+
+
+
+
 void client::listenAndPrint(int sockFd, int* disconnect) {
     char buffer[256];
     uint bufferSize = 256;
@@ -175,6 +183,10 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
 
         std::cout<< "RECIEVED: "<<buffer<<std::endl;
         std::string recString = buffer;
+
+        //TODO: create switch statement:
+
+
 
         //std::endl automatically adds a \n and flushes the stream!
         if (recString == "GOODBYE"){
@@ -193,6 +205,9 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
     }
 }
 
+
+
+
 void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
     while(true){
@@ -208,6 +223,11 @@ void client::writeSock(int sockFd, const int* disconnect) {
             error("ERROR writing to socket");
     }
 }
+
+
+
+
+
 
 
 
