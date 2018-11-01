@@ -39,15 +39,6 @@ int client::clientMain(int argc, char *argv[])
 
 
    if(fileExists(clientState.configFile)&&!clientState.configFile.empty()){
-       //according to the TA in lab 10/18 we need to create a config file and populate it with the manual entries if no config file is provided
-       //file will be formatted in the same way as manually passed args - SHOULD NOT HAVE CONFIG FILE LINE
-       //1 -h hostname
-       //2 -u username
-       //3 -p port#
-       //4 -t text file path
-       //5 -L log file path
-       //6 -P password
-       //7 -a level
 
        std::cout << "[Initializing Client from .config file]"<<std::endl;
 
@@ -79,27 +70,17 @@ int client::clientMain(int argc, char *argv[])
             // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
         else error("ERROR: Incorrect formatting in .config file\n "
                    "Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
-
        }
-
 
        std::string uname = "[LOG]_";
        uname.append(clientState.userName);
        clientState.logFile.append(uname);
-//       std::cout<<"\n[Client Variables set by .config file:]"<<std::endl
-//       << "Client hostName: " << clientState.hostName << std::endl
-//       << "Client userName: " << clientState.userName << std::endl
-//       << "Client Port: " << clientState.port << std::endl
-//       << "Config File name: " << clientState.configFile << std::endl
-//       << "Test File name: " << clientState.testFile <<std::endl
-//       << "Log File name: " << clientState.logFile << "\n" <<std::endl;
    }
    else error("ERROR: Config file is unreadable");
 
 
-
    //create log file and set member var if file does not exist already: - **LogFile variable should include directory path!!
-    std:: cout << clientState.logFile << std::endl;
+   // std:: cout << clientState.logFile << std::endl;
 
     if(!fileExists(clientState.logFile)){
        clientState.logFileWrite = std::ofstream(clientState.logFile);
@@ -125,6 +106,7 @@ int client::clientMain(int argc, char *argv[])
                    << "Client Port: " << clientState.port <<"\n\n"<< std::endl;
        }
    }
+
 
 
 //______________________________________________________________________________________________________
@@ -325,11 +307,29 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case INFO:{
+                    auto temp = makeMessage::INFO();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in INFO");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "INFO: " << temp << std::endl;
+                    break;
+                }
+
+                case PRIVMSG:{
+                    auto temp = makeMessage::PRIVMSG();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in PRIVMSG");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "INFO: " << temp << std::endl;
+                    break;
+                }
+
 
 
                 default:
                     error("ERROR: Client OP code not recognized, type HELP for usage instructions");
-                    exit(0);
+                    break;
 
             }
             input = "";
@@ -455,6 +455,7 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["WALLOPS"] = WALLOPS;
     mapString["WHO"] = WHO;
     mapString["WHOIS"] = WHOIS;
+    mapString["INFO"]= INFO;
 
 }
 
