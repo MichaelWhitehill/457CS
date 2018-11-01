@@ -316,11 +316,20 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case PRIVMSG:{
+                    auto temp = makeMessage::PRIVMSG();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in PRIVMSG");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "INFO: " << temp << std::endl;
+                    break;
+                }
+
 
 
                 default:
                     error("ERROR: Client OP code not recognized, type HELP for usage instructions");
-                    exit(0);
+                    break;
 
             }
             input = "";

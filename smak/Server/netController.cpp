@@ -167,10 +167,9 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
     bool sent = false;
     auto allUsers = serverState->getUsers(); //Get all the current users and try to find the one specified in passed userName
 
-    if(userName=="anon"){
+    if(userName=="Anon"){
         std::string errMsg = "__Cannot send a PRVMSG to anonymous users who have not provided a username or nickname__";
         fromUser.get()->sendString(errMsg);
-
     }
     else{
     for (auto user : allUsers){
