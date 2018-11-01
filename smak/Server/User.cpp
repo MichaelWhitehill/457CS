@@ -5,9 +5,9 @@
 #include <thread>
 #include "User.h"
 
-smak::User::User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uName) {
+smak::User::User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uname) {
     this->session = session;
-    username = uName;
+    username = uname;
 }
 
 void smak::User::closeSession() {
@@ -24,6 +24,19 @@ const void smak::User::sendString(const std::string &toSend) {
     senderThread.join();
 }
 
+//Session is an instance of TCPUser Socket for this client
 std::shared_ptr<smak::tcpUserSocket> smak::User::getSession() {
     return session;
+}
+
+void smak::User::setAwayMsg(std::string& awayMsg) {
+    away = awayMsg;
+}
+
+void smak::User::setPassword(std::string &password) {
+    password = password;
+}
+
+void smak::User::setLevel(std::string &level) {
+    level = level;
 }

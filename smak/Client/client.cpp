@@ -16,8 +16,8 @@
 #include <thread>
 #include <map>
 #include <iostream>
-#include<getopt.h>
-#include<fstream>
+#include <getopt.h>
+#include <fstream>
 #include <vector>
 #include <sstream>
 #include <iterator>
@@ -28,11 +28,15 @@
 
 struct clientInfo{
     char *hostName = nullptr;
-    std::string userName, configFile, testFile, logFile, Away; //config File & test File parameter will be string to existing file
+    std::string userName, configFile, testFile, logFile, Away, password, level; //config File & test File parameter will be string to existing file
     int port = 0;    //destination server port
     std::ofstream logFileWrite;   //string logFile name - file writer will be used by many function calls
 }clientState;
 
+//password, level, banned
+
+//ALLOWED LEVELS:
+//user, channelop, sysop, admin
 
 static auto t = time(NULL); //var for current time
 
@@ -44,8 +48,6 @@ int client::clientMain(int argc, char *argv[])
 {
     //INITIALIZE MAPSTRING:
     initialize(mapString);
-    std::cout << mapString["WALLOPS"] << std::endl;
-
 
     if (argc < 2) {
         std::cerr<< "Incorrect usage: not enough arguments, Client minimum arguments: -c 'configFileName.conf' (in current directory) clt";
@@ -58,12 +60,14 @@ int client::clientMain(int argc, char *argv[])
 
    if(fileExists(clientState.configFile)&&!clientState.configFile.empty()){
        //according to the TA in lab 10/18 we need to create a config file and populate it with the manual entries if no config file is provided
-       //file will be formatted in the same way as manually passed args - SHOULD HAVE 5 LINES VS 6- no line for config file, as we already have that:
+       //file will be formatted in the same way as manually passed args - SHOULD NOT HAVE CONFIG FILE LINE
        //1 -h hostname
        //2 -u username
        //3 -p port#
        //4 -t text file path
        //5 -L log file path
+       //6 -P password
+       //7 -a level
 
        std::cout << "[Initializing Client from .config file]"<<std::endl;
 
@@ -89,8 +93,12 @@ int client::clientMain(int argc, char *argv[])
         else if(parse[0]=="-p"){clientState.port = stoi(parse[1]);}
         else if(parse[0]=="-t"){clientState.testFile = parse[1];}
         else if(parse[0]=="-L"){clientState.logFile = parse[1];}
-       // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
-        else error("ERROR: Incorrect formatting in .config file");
+        else if(parse[0]=="-P"){clientState.password = parse[1];}
+        else if(parse[0]=="-a"){clientState.level = parse[1];}
+
+            // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
+        else error("ERROR: Incorrect formatting in .config file\n "
+                   "Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
 
        }
 
@@ -194,12 +202,10 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
 
 
 
-        std::cout<< "RECIEVED: "<<buffer<<std::endl;
+        std::cout<< "RECIEVED: "<<buffer<<std::endl; //This freaks out in an infinite loop if there is another client opened and that client closes unexpectedly
         std::string recString = buffer;
 
         //TODO: create switch statement for RECIEVING messages:
-
-
 
         //std::endl automatically adds a \n and flushes the stream
         if (recString == "GOODBYE"){
@@ -216,11 +222,9 @@ void client::listenAndPrint(int sockFd, int* disconnect) {
             }
         }
     }
-
-
-
-
 }
+
+
 
 
 
@@ -230,12 +234,22 @@ void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
     std::string input;
 
+
+
+    if(clientState.level.empty()){error("ERROR: Level was not set for client, check .conf file arguments");}
+    else{   //Send INITIAL_NAME JSON to server to set Name from .conf file
+        std::string info = makeMessage::INITIAL_SETTINGS(clientState.userName, clientState.password, clientState.level);
+        errNo = write(sockFd, info.c_str(), info.size());
+        if (errNo < 0)
+            error("ERROR writing to socket in INITIAL_SETTINGS");
+    }
+
     while(true){
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
         if(*disconnect != 0)
             return;
 
-        std::cout<<"Please enter the OP code: ";
+        std::cout<<"\nPlease enter the OP code: ";
         std::getline(std::cin, input);
         //input += "\n";
 
@@ -272,7 +286,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in MSG");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: MSG: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "MSG: " << temp << std::endl;
                     break;
                 }
 
@@ -281,7 +295,15 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in AWAY");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: AWAY: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "AWAY: " << temp << std::endl;
+
+                    rapidjson::Document d;
+                    d.Parse(temp.c_str());
+                    if(d.IsObject()) {
+                        assert(d.HasMember("message"));
+                        clientState.Away = d["message"].GetString();
+                    }
+                    std::cout << "Client AWAY status message has been set to: " << clientState.Away << std::endl;
                     break;
                 }
 
@@ -290,7 +312,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in INVITE");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: INVITE: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "INVITE: " << temp << std::endl;
                     break;
                 }
 
@@ -299,7 +321,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in JOIN");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: JOIN: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "JOIN: " << temp << std::endl;
                     break;
                 }
 
@@ -310,7 +332,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in KICK");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: KICK: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "KICK: " << temp << std::endl;
                     break;
                 }
 
@@ -319,7 +341,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in SETNAME");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OP: SETNAME: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "SETNAME: " << temp << std::endl;
                     break;
                 }
 
@@ -384,8 +406,18 @@ void client::parseArgsCmdLine(int argc, char *argv[]) {
                // std::cout << "Log File has been opened under name: " << optarg << std::endl;
                 break;
             }
+            case 'P': {
+                clientState.password = optarg;
+                std::cout << "password has been specified and is : " << clientState.password << std::endl;
+                break;
+            }
+            case 'a':{
+                clientState.level = optarg;
+                std::cout << "users admin level is : " << clientState.level << std::endl;
+                break;
+            }
             default  :
-                error("ERROR: Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile");
+                error("ERROR: Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
                 exit(0);
         }
     }
