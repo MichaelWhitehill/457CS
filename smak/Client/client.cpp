@@ -4,6 +4,8 @@
 
 #include "client.h"
 
+
+
 struct clientInfo{
     char *hostName = nullptr;
     std::string userName, configFile, testFile, logFile, Away, password, level; //config File & test File parameter will be string to existing file
