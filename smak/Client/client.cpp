@@ -17,7 +17,7 @@
 #include <map>
 #include <iostream>
 #include <getopt.h>
-#include<fstream>
+#include <fstream>
 #include <vector>
 #include <sstream>
 #include <iterator>
@@ -97,7 +97,8 @@ int client::clientMain(int argc, char *argv[])
         else if(parse[0]=="-a"){clientState.level = parse[1];}
 
             // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
-        else error("ERROR: Incorrect formatting in .config file");
+        else error("ERROR: Incorrect formatting in .config file\n "
+                   "Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
 
        }
 
@@ -233,7 +234,9 @@ void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
     std::string input;
 
-    if(clientState.userName.empty()){error("ERROR: Username was not set for client, check .conf file arguments");}
+
+
+    if(clientState.level.empty()){error("ERROR: Level was not set for client, check .conf file arguments");}
     else{   //Send INITIAL_NAME JSON to server to set Name from .conf file
         std::string info = makeMessage::INITIAL_SETTINGS(clientState.userName, clientState.password, clientState.level);
         errNo = write(sockFd, info.c_str(), info.size());
@@ -414,7 +417,7 @@ void client::parseArgsCmdLine(int argc, char *argv[]) {
                 break;
             }
             default  :
-                error("ERROR: Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
+                error("ERROR: Incorrect usage: Incorrect arguments, Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
                 exit(0);
         }
     }

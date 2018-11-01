@@ -16,7 +16,7 @@ namespace smak{
          * @param session a shared pointer to a tcpUser socket
          * @param uName The username for the user, defaulted to anon, probably stays that way
          */
-        User(std::shared_ptr<smak::tcpUserSocket> session);
+        User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uname = "Anon");
 
         /**
          * Closes the file descriptor of the socket associated with the user

@@ -162,6 +162,12 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
     bool sent = false;
     auto allUsers = serverState->getUsers(); //Get all the current users and try to find the one specified in passed userName
 
+    if(userName=="anon"){
+        std::string errMsg = "__Cannot send a PRVMSG to anonymous users who have not provided a username or nickname__";
+        fromUser.get()->sendString(errMsg);
+
+    }
+    else{
     for (auto user : allUsers){
         if(user.get()->getName() == userName){
             if(!user.get()->getAwayMsg().empty()){ //If the desired end user has a non empty AWAY string and has not come back to the keyboard
@@ -176,7 +182,8 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
         }
     }
     if (!sent){
-        throw std::string("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
+        error("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
+    }
     }
 
 }
@@ -200,7 +207,10 @@ void smak::netController::setInit(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom.HasMember(F_NAME));
     assert(jsonDom[F_NAME].IsString());
     newName = jsonDom[F_NAME].GetString();
-    fromUser.get()->setName(newName);
+    if(newName.length()==0){
+        fromUser.get()->setName("Anon"); //default case for if no username/nickname is specified
+    }
+    else{fromUser.get()->setName(newName)};
 
     std::string password;
     assert(jsonDom.HasMember(F_PASSWORD));

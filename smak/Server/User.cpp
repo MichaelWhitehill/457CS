@@ -5,8 +5,9 @@
 #include <thread>
 #include "User.h"
 
-smak::User::User(std::shared_ptr<smak::tcpUserSocket> session) {
+smak::User::User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uname) {
     this->session = session;
+    username = uname;
 }
 
 void smak::User::closeSession() {
