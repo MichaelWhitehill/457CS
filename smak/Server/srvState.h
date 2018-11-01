@@ -10,6 +10,10 @@
 #include "tcpUserSocket.h"
 #include "User.h"
 #include "Channel.h"
+#include <fstream>
+#include <iostream>
+#include <string.h>
+#include <string>
 
 namespace smak{
     class srvState {

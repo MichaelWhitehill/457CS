@@ -3,28 +3,6 @@
 //
 
 #include "client.h"
-#include "../main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <string>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <thread>
-#include <map>
-#include <iostream>
-#include <getopt.h>
-#include <fstream>
-#include <vector>
-#include <sstream>
-#include <iterator>
-#include "time.h"
-#include <algorithm>
-#include "makeMessage.h"
-
 
 struct clientInfo{
     char *hostName = nullptr;
