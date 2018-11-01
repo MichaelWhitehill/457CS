@@ -182,7 +182,9 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
         }
     }
     if (!sent){
-        error("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
+
+        throw std::string("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
+
     }
     }
 
@@ -210,7 +212,9 @@ void smak::netController::setInit(const rapidjson::Document &jsonDom, std::share
     if(newName.length()==0){
         fromUser.get()->setName("Anon"); //default case for if no username/nickname is specified
     }
-    else{fromUser.get()->setName(newName)};
+
+    else{fromUser.get()->setName(newName);}
+
 
     std::string password;
     assert(jsonDom.HasMember(F_PASSWORD));

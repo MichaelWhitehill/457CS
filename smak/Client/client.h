@@ -11,6 +11,27 @@
 #include "../rapidjson/document.h"
 #include "../rapidjson/writer.h"
 #include "../rapidjson/stringbuffer.h"
+#include "../main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <string>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <thread>
+#include <map>
+#include <iostream>
+#include <getopt.h>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <iterator>
+#include "time.h"
+#include <algorithm>
+#include "makeMessage.h"
 
 
 enum ops{HELP,JSON,MSG,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
