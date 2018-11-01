@@ -214,10 +214,9 @@ void client::writeSock(int sockFd, const int* disconnect) {
         std::cout<<"\nPlease enter the OP code: ";
         std::getline(std::cin, input);
         //input += "\n";
+        input = std::regex_replace(input, std::regex("^ +| +$|( ) +"), "$1"); //Trim any trailing or leading whitespace
 
         auto it = mapString.find(input);
-
-
         if(input.empty() || it == mapString.end()){error("ERROR: User input was invalid");}
         else{
 
@@ -328,16 +327,13 @@ void client::writeSock(int sockFd, const int* disconnect) {
 
 
                 default:
-                    error("ERROR: Client OP code not recognized, type HELP for usage instructions");
+                    std::cout << "ERROR: Client OP code not recognized, type HELP for usage instructions" << std::endl;
                     break;
 
             }
             input = "";
 
         }
-
-       // HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS
-
 
         errNo = write(sockFd, input.c_str(), input.size());
         if (errNo < 0)

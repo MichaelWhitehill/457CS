@@ -32,6 +32,8 @@
 #include "time.h"
 #include <algorithm>
 #include "makeMessage.h"
+#include <regex>
+
 
 
 enum ops{HELP,JSON,MSG,AWAY,INFO,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};

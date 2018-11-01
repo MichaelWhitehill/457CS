@@ -71,7 +71,7 @@ std::string makeMessage::AWAY() {
     d.Parse(json.c_str());
 
     std::string input;
-    std::cout << "Please enter the AWAY string msg: " << std::endl;
+    std::cout << "Please enter the AWAY string msg: \n (enter 'here' to clear AWAY status)" << std::endl;
     std::getline(std::cin, input);
 
     rapidjson::Value contact;

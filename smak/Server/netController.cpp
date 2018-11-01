@@ -174,7 +174,7 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
     else{
     for (auto user : allUsers){
         if(user.get()->getName() == userName){
-            if(!user.get()->getAwayMsg().empty()){ //If the desired end user has a non empty AWAY string and has not come back to the keyboard
+            if(user.get()->getAwayMsg()!="here"){ //If the desired end user has a non empty AWAY string and has not come back to the keyboard
                 std::string away = userName + " Has set their current status to away and the AWAY message is: " + user.get()->getAwayMsg();
                 fromUser.get()->sendString(away); //sending user is alerted that their PRVMSG was sent to a client that is away
                 user.get()->sendString(msgWhileAway);
@@ -200,10 +200,7 @@ void smak::netController::opAway(const rapidjson::Document &jsonDom, std::shared
 
     std::string message = jsonDom[F_MESSAGE].GetString();
 
-    if(message == "here"){
-        fromUser.get()->setName(""); //clear out the AWAY string to empty if user is no at keyboard again
-    }
-    else{fromUser.get()->setName(message);}
+    fromUser.get()->setAwayMsg(message);
 
 
 }
@@ -213,10 +210,9 @@ void smak::netController::setInit(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom.HasMember(F_NAME));
     assert(jsonDom[F_NAME].IsString());
     newName = jsonDom[F_NAME].GetString();
-    if(newName.length()==0){
+    if(newName.empty()){
         fromUser.get()->setName("Anon"); //default case for if no username/nickname is specified
     }
-
     else{fromUser.get()->setName(newName);}
 
 
@@ -231,6 +227,9 @@ void smak::netController::setInit(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom[F_LEVEL].IsString());
     level = jsonDom[F_LEVEL].GetString();
     fromUser.get()->setLevel(level);
+
+    std::string default_val = "here";
+    fromUser.get()->setAwayMsg(default_val);
 }
 
 void smak::netController::opInfo(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
