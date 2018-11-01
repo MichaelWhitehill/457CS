@@ -279,6 +279,18 @@ std::string makeMessage::WHOIS() {
     return std::__cxx11::string();
 }
 
+std::string makeMessage::INFO() {
+    std::string json = "{\"OP\":\"INFO\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}
+
 
 
 

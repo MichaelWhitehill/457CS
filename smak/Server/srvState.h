@@ -14,11 +14,19 @@
 #include <iostream>
 #include <string.h>
 #include <string>
+#include <getopt.h>
+#include "time.h"
+#include <algorithm>
+#include <vector>
+#include <sstream>
+#include <iterator>
+
+
 
 namespace smak{
     class srvState {
     public:
-        srvState(std::vector<std::unique_ptr<std::thread>>* threadList_p);
+        srvState(std::vector<std::unique_ptr<std::thread>>* threadList_p, std::string confPath);
         /**
          * Adds a session or connection to the list of maintained sessions
          * @param session User representing each connected client
@@ -53,6 +61,22 @@ namespace smak{
          */
         const std::string& getChatLog();
 
+        //void parseArgsCmdLine(int argc, char *argv[]);
+
+        std::string getTime();
+
+        bool fileExists(std::string &Filename);
+
+        std::vector<std::string> split(std::string const &input);
+
+        void banFileOpen();
+        void userLogFileOpen();
+        void channelLogFileOpen();
+
+        void closeFiles();
+        int getPort();
+        std::string getName();
+        std::string getStartTime();
 
     private:
         //TODO: Add server rules as string (maybe?)
@@ -64,6 +88,7 @@ namespace smak{
         // A list of channels on the server
         std::vector<shared_ptr<smak::Channel>> channelList;
         std::string chatLog;
+        struct serverInfo{};
     };
 }
 

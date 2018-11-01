@@ -61,6 +61,7 @@ public : static std::string WHO();
 
 public : static std::string WHOIS();
 
+public : static std::string INFO();
 
 
 

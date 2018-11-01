@@ -12,6 +12,7 @@
 #define OP_INITIAL_SETTINGS "SET"
 #define OP_PRIVMSG "PRIVMSG"
 #define OP_AWAY "AWAY"
+#define OP_INFO "INFO"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -25,6 +26,7 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
     // My Dommy's name is jason
     rapidjson::Document jsonDom;
     jsonDom.Parse(cmd.c_str());
+
     if(jsonDom.IsObject()) {
         // Every message that is a json message should have an op that is a string.
         // Everything else is OP specific
@@ -48,6 +50,9 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         }
         else if (op==OP_AWAY){
             opAway(jsonDom, fromUser);
+        }
+        else if (op==OP_INFO){
+            opInfo(jsonDom, fromUser);
         }
 
 
@@ -192,7 +197,7 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
 
 void smak::netController::opAway(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
     assert(jsonDom.HasMember(F_MESSAGE));
-    //assert(jsonDom[F_MESSAGE].IsString()); //THIS COULD BREAK IF AWAY STRING IS EMPTY
+    assert(jsonDom[F_MESSAGE].IsString());
 
     std::string message = jsonDom[F_MESSAGE].GetString();
 
@@ -227,4 +232,12 @@ void smak::netController::setInit(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom[F_LEVEL].IsString());
     level = jsonDom[F_LEVEL].GetString();
     fromUser.get()->setLevel(level);
+}
+
+void smak::netController::opInfo(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string Name = serverState->getName();
+    std::string beginTime = serverState->getStartTime();
+    std::string curTime = serverState->getTime();
+
+    fromUser.get()->sendString("The server you are on is: " + Name + "\nThis server has been running since: "+beginTime+"\nThe current time is: "+curTime+"\nFor more info use OP code LIST");
 }

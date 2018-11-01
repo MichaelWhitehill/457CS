@@ -26,6 +26,7 @@ int main (int argc, char* argv[]){
     }
     else if(toStart == "clt"){
         return client::clientMain(newArgc, newArgv);
+        //NEED TO PASS PORT # and config file path
     }
 }
 void error(const char *msg) {
