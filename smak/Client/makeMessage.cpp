@@ -7,6 +7,35 @@ using namespace rapidjson;
 
 //#define for each JSON string in utils.h
 //Test JOIN MSG SETNAME
+
+
+std::string makeMessage::INITIAL_SETTINGS(std::string name, std::string password, std::string level) {
+
+    std::string json = "{\"OP\":\"SET\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    rapidjson::Value n;
+    n = StringRef(name.c_str());
+    d.AddMember("name", n, d.GetAllocator());
+
+    rapidjson::Value p;
+    p = StringRef(name.c_str());
+    d.AddMember("password", p, d.GetAllocator());
+
+    rapidjson::Value l;
+    l = StringRef(name.c_str());
+    d.AddMember("level", l, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+
+}
+
+
 std::string makeMessage::MSG() {
 
     std::string json = "{\"OP\":\"MSG\"}";
@@ -16,7 +45,7 @@ std::string makeMessage::MSG() {
     std::cout << "Please enter the channel to send MSG: " << std::endl;
     std::string channel;
     std::getline(std::cin, channel);
-    std::cout << "Please enter the message to channel: " << channel << " to" << std::endl;
+    std::cout << "Please enter the message to channel: " << channel << std::endl;
     std::string msg;
     std::getline(std::cin, msg);
 
@@ -144,6 +173,7 @@ std::string makeMessage::KNOCK() {
 }
 
 std::string makeMessage::NICK() {
+    //This command necessitates a completely new field nickname vs username/password
     return std::__cxx11::string();
 }
 
@@ -164,7 +194,33 @@ std::string makeMessage::PASS() {
 }
 
 std::string makeMessage::PRIVMSG() {
-    return std::__cxx11::string();
+
+    //should be a check for if the recipient is on the channel you are on? or just send to any user anywhere
+
+    std::string json = "{\"OP\":\"PRIVMSG\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter the user to send PRIVMSG to: " << std::endl;
+    std::string user;
+    std::getline(std::cin, user);
+    std::cout << "Please enter the private message to user: " << user << std::endl;
+    std::string msg;
+    std::getline(std::cin, msg);
+
+    rapidjson::Value contact;
+    contact = StringRef(user.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    rapidjson::Value val;
+    val = StringRef(msg.c_str());
+    d.AddMember("message", val, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::QUIT() {
@@ -222,5 +278,7 @@ std::string makeMessage::WHO() {
 std::string makeMessage::WHOIS() {
     return std::__cxx11::string();
 }
+
+
 
 

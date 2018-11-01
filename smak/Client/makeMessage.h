@@ -13,6 +13,8 @@
 
 class makeMessage {
 
+public : static std::string INITIAL_SETTINGS(std::string name, std::string password, std::string level);
+
 public : static std::string MSG();
 
 public : static std::string AWAY();

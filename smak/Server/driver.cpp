@@ -26,10 +26,11 @@ int cclient(const std::shared_ptr<smak::User> &user,int id, smak::netController 
         std::cout << "Server Received[" << msg <<"]\n";
 
         // Only the client who sent the message will get this response
-        user.get()->sendString("I got a message from you");
+        user.get()->sendString("_SERVER_: recvd message");
 
         // This processes the message based on it's JSON content
         netCon.interpret(msg, user);
+
         if (msg.substr(0,4) == "EXIT"){
             cont = false;
         }
