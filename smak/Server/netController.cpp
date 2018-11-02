@@ -9,10 +9,14 @@
 #define OP_SETNAME "SETNAME"
 #define OP_JOIN "JOIN"
 #define OP_MSG "MSG"
-#define OP_INITIAL_SETTINGS "SET"
+#define OP_INITIAL_SETTINGS "USER"
 #define OP_PRIVMSG "PRIVMSG"
 #define OP_AWAY "AWAY"
 #define OP_INFO "INFO"
+#define OP_PING "PING"
+#define OP_OPER "OPER"
+#define OP_USERS "USERS"
+#define OP_TIME "TIME"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -36,6 +40,7 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
 
         if (op == OP_INITIAL_SETTINGS) {
             //This will be called automatically from client and will set to the name field from .conf file- requirement that each .conf file has a name set
+            //THIS USES THE 'USER' OP CODE
             setInit(jsonDom, fromUser);
         }
         if (op == OP_SETNAME){
@@ -54,6 +59,19 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op==OP_INFO){
             opInfo(jsonDom, fromUser);
         }
+        else if (op==OP_PING){
+            opPing(jsonDom, fromUser);
+        }
+        else if (op==OP_OPER){
+            opOper(jsonDom, fromUser);
+        }
+        else if (op==OP_USERS){
+            opUsers(jsonDom, fromUser);
+        }
+        else if (op==OP_TIME){
+            opTime(jsonDom, fromUser);
+        }
+
 
 
 
@@ -238,4 +256,53 @@ void smak::netController::opInfo(const rapidjson::Document &jsonDom, std::shared
     std::string curTime = serverState->getTime();
 
     fromUser.get()->sendString("The server you are on is: " + Name + "\nThis server has been running since: "+beginTime+"\nThe current time is: "+curTime+"\nFor more info use OP code LIST");
+}
+
+void smak::netController::opPing(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string Name = serverState->getName();
+    std::string beginTime = serverState->getStartTime();
+
+    fromUser.get()->sendString("[PONG] Your connection is good, server is: "+Name+"\nThis server has been running since: "+beginTime);
+}
+
+void smak::netController::opOper(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
+    std::string level = fromUser.get()->getLevel();
+    std::string name = fromUser.get()->getName();
+    std::string channels;
+
+    if(level=="admin"||level=="sysop"){
+        fromUser.get()->sendString("You are: "+name+" your level is: "+level+"\nFor info about other users use OP USERHOST for specific user or USERS fo all");
+    }
+    else if(level == "channelop"){ //Find all the servers you are on
+        auto existingChannels = serverState->getChannels();
+        for (auto channel: existingChannels){
+            for (auto user : channel->getUsers()){
+                if (user.get()->getName() == fromUser.get()->getName()) {
+                    channels.append(channel->getName()+", ");
+                }
+            }
+        }
+        fromUser.get()->sendString("You are: "+name+" your level is: "+level+" and you have admin channel control over channel(s): "+channels+"\nFor info about other users use OP USERHOST for specific user or USERS fo all");
+    }else{fromUser.get()->sendString("You are: "+name+" your level is: "+level+" you do not have any admin or operator privileges"+"\nFor info about other users use OP USERHOST for specific user or USERS fo all");}
+
+
+
+
+}
+
+void smak::netController::opUsers(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+        std::string userList = "All current users on server: \n\n";
+
+        for(auto specUser: serverState->getUsers()){
+            std::string user = "Name: "+specUser->getName()+" ,Level: "+specUser->getLevel();
+            if(specUser->getAwayMsg()!="here"){user.append(" -Currently AWAY");}
+            userList.append(user+"\n");
+        }
+        fromUser.get()->sendString(userList+"\nFor info on users on a specific channel use OP WHO");
+}
+
+void smak::netController::opTime(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string Time = serverState->getTime();
+    fromUser.get()->sendString("Current Time on Server is: "+Time+"\nFor more server Info use OP INFO");
 }

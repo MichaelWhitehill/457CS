@@ -227,6 +227,10 @@ std::string smak::srvState::getStartTime() {
     return serverState.startTime;
 }
 
+void smak::srvState::writeFiles() {
+
+}
+
 
 
 

@@ -15,7 +15,7 @@ void smak::User::closeSession() {
 }
 
 void smak::User::setName(const std::string& name) {
-    username = name;
+    this->username = name;
 }
 
 const void smak::User::sendString(const std::string &toSend) {
@@ -30,13 +30,13 @@ std::shared_ptr<smak::tcpUserSocket> smak::User::getSession() {
 }
 
 void smak::User::setAwayMsg(std::string& awayMsg) {
-    away = awayMsg;
+    this->away = awayMsg;
 }
 
-void smak::User::setPassword(std::string &password) {
-    password = password;
+void smak::User::setPassword(std::string& pass) {
+    this->password = pass;
 }
 
-void smak::User::setLevel(std::string &level) {
-    level = level;
+void smak::User::setLevel(std::string& lev) {
+    this->level = lev;
 }

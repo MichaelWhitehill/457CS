@@ -11,7 +11,7 @@ using namespace rapidjson;
 
 std::string makeMessage::INITIAL_SETTINGS(std::string name, std::string password, std::string level) {
 
-    std::string json = "{\"OP\":\"SET\"}";
+    std::string json = "{\"OP\":\"USER\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
 
@@ -20,11 +20,11 @@ std::string makeMessage::INITIAL_SETTINGS(std::string name, std::string password
     d.AddMember("name", n, d.GetAllocator());
 
     rapidjson::Value p;
-    p = StringRef(name.c_str());
+    p = StringRef(password.c_str());
     d.AddMember("password", p, d.GetAllocator());
 
     rapidjson::Value l;
-    l = StringRef(name.c_str());
+    l = StringRef(level.c_str());
     d.AddMember("level", l, d.GetAllocator());
 
     StringBuffer buffer;
@@ -186,7 +186,15 @@ std::string makeMessage::PART() {
 }
 
 std::string makeMessage::OPER() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"OPER\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::PASS() {
@@ -251,7 +259,7 @@ std::string makeMessage::TOPIC() {
     return std::__cxx11::string();
 }
 
-std::string makeMessage::USER() {
+std::string makeMessage::USER() { //This is implemented through SET method
     return std::__cxx11::string();
 }
 
@@ -264,7 +272,15 @@ std::string makeMessage::USERIP() {
 }
 
 std::string makeMessage::USERS() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"USERS\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::WALLOPS() {
@@ -281,6 +297,30 @@ std::string makeMessage::WHOIS() {
 
 std::string makeMessage::INFO() {
     std::string json = "{\"OP\":\"INFO\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}
+
+std::string makeMessage::PING() {
+    std::string json = "{\"OP\":\"PING\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}
+
+std::string makeMessage::TIME() {
+    std::string json = "{\"OP\":\"TIME\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
 

@@ -230,7 +230,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
-                case JSON: {
+                case JSON: { //Used for debug
                     std::cout << "Please enter the JSON string for testing Server: " << std::endl;
                     input = "";
                     std::getline(std::cin, input);
@@ -320,7 +320,43 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in PRIVMSG");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "INFO: " << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "PRIVMSG: " << temp << std::endl;
+                    break;
+                }
+
+                case PING:{
+                    auto temp = makeMessage::PING();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in PING");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "PING: " << temp << std::endl;
+                    break;
+                }
+
+                case OPER:{
+                    auto temp = makeMessage::OPER();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in OPER");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "OPER: " << temp << std::endl;
+                    break;
+                }
+
+                case USERS:{
+                    auto temp = makeMessage::USERS();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in USERS");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "USERS: " << temp << std::endl;
+                    break;
+                }
+
+                case TIME:{
+                    auto temp = makeMessage::TIME();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in TIME");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "TIME: " << temp << std::endl;
                     break;
                 }
 
@@ -452,6 +488,8 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["WHO"] = WHO;
     mapString["WHOIS"] = WHOIS;
     mapString["INFO"]= INFO;
+    mapString["PING"]=PING;
+    mapString["TIME"]=TIME;
 
 }
 

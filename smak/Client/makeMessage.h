@@ -63,6 +63,10 @@ public : static std::string WHOIS();
 
 public : static std::string INFO();
 
+public : static std::string PING();
+
+public : static std::string TIME();
+
 
 
 };

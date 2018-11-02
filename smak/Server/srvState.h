@@ -72,11 +72,13 @@ namespace smak{
         void banFileOpen();
         void userLogFileOpen();
         void channelLogFileOpen();
+        void writeFiles();
 
         void closeFiles();
         int getPort();
         std::string getName();
         std::string getStartTime();
+
 
     private:
         //TODO: Add server rules as string (maybe?)
