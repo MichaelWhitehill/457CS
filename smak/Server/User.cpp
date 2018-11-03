@@ -8,6 +8,7 @@
 smak::User::User(std::shared_ptr<smak::tcpUserSocket> session, const std::string &uname) {
     this->session = session;
     username = uname;
+    disconnect_flag = false;
 }
 
 void smak::User::closeSession() {
@@ -39,4 +40,8 @@ void smak::User::setPassword(std::string& pass) {
 
 void smak::User::setLevel(std::string& lev) {
     this->level = lev;
+}
+
+void smak::User::safeDisconnect() {
+    disconnect_flag = true;
 }

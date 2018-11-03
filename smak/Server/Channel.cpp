@@ -15,7 +15,7 @@ void smak::Channel::join(std::shared_ptr<smak::User> &user) {
 }
 
 void smak::Channel::leave(std::shared_ptr<smak::User> &user) {
-    userList.erase(userList.begin(), userList.find(user));
+    userList.erase(user);
 }
 
 const std::set<std::shared_ptr<smak::User>> &smak::Channel::getUsers() {
