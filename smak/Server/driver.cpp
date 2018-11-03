@@ -34,6 +34,8 @@ int cclient(const std::shared_ptr<smak::User> &user,int id, smak::netController 
         if (msg.substr(0,4) == "EXIT"){
             cont = false;
         }
+        if (user.get()->disconnect())
+            cont = false;
 
         if (msg.substr(0,12) == "SERVER_CLOSE") // TODO: I don't know what this does, but it doesn't work
         {
@@ -46,10 +48,6 @@ int cclient(const std::shared_ptr<smak::User> &user,int id, smak::netController 
     return 1;
 }
 
-
-
-
-
 int smak::driver::driverMain(int argc, char **argv)
 {
 
@@ -60,7 +58,9 @@ int smak::driver::driverMain(int argc, char **argv)
     if(argc<1){throw std::string("ERROR: Minimum argument to initiate server is .conf file path");}
     std::cout << "Initializing Socket" << std::endl;
     smak::tcpServerSocket mysocket(serverState.getPort()); //Set up a TCP socket on port 2000 (FOR SERVER)
-    if(serverState.getPort() ==0 ){throw std::string ("ERROR: Server port was not correctly read from conf files");}
+    if(serverState.getPort() ==0 ){
+        throw std::string ("ERROR: Server port was not correctly read from conf files");
+    }
     std::cout << "Binding Socket" << std::endl;
     // TODO: Err check. Use main::Error
     mysocket.bindSocket();  //Bind the created SERVER socket "mysocket"

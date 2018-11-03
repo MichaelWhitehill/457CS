@@ -50,6 +50,10 @@ namespace smak{
 
         std::string getLevel(){return level;}
 
+        void safeDisconnect();
+
+        bool disconnect() { return disconnect_flag;}
+
 
 
         /**
@@ -65,6 +69,13 @@ namespace smak{
         std::string away;
         std::string password;
         std::string level;
+
+        // This value exists for the kick_user function. If a user is kicked users thread will most likely be
+        // caught in the blocking read call. We flip this value, and after the next message received from the client
+        // they will be disconnected.
+        // disconnect is also used in a more trivial case for QUITE but unlike kick we don't get caught in a blocking
+        // call
+        bool disconnect_flag;
         //bool banned; ??
 
         std::shared_ptr<smak::tcpUserSocket> session;

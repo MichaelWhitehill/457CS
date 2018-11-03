@@ -150,7 +150,7 @@ std::string makeMessage::KICK() {
 
     rapidjson::Value contact;
     contact = StringRef(client.c_str());
-    d.AddMember("client", contact, d.GetAllocator());
+    d.AddMember("name", contact, d.GetAllocator());
 
     rapidjson::Value val;
     val = StringRef(channel.c_str());

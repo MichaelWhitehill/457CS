@@ -17,6 +17,9 @@
 #define OP_OPER "OPER"
 #define OP_USERS "USERS"
 #define OP_TIME "TIME"
+#define OP_QUIT "QUIT"
+#define OP_KICK "KICK"
+#define OP_KILL "KILL"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -71,6 +74,15 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op==OP_TIME){
             opTime(jsonDom, fromUser);
         }
+        else if (op == OP_QUIT){
+            opQuit(jsonDom, fromUser);
+        }
+        else if (op == OP_KICK){
+            opKick(jsonDom, fromUser);
+        }
+        else if (op == OP_KILL){
+            opKill(jsonDom, fromUser);
+        }
 
 
 
@@ -99,6 +111,9 @@ void smak::netController::broadcastMessage(const std::string &toBroadcast) {
 }
 
 void smak::netController::closeUserConnection(std::shared_ptr<User> userToClose) {
+    for(const std::shared_ptr<smak::Channel> &channel : serverState->getChannels()){
+        channel.get()->leave(userToClose);
+    }
     userToClose.get()->sendString("GOODBYE");
     auto socket = userToClose.get()->getSession();
     socket.get()->closeSocket();
@@ -306,3 +321,48 @@ void smak::netController::opTime(const rapidjson::Document &jsonDom, std::shared
     std::string Time = serverState->getTime();
     fromUser.get()->sendString("Current Time on Server is: "+Time+"\nFor more server Info use OP INFO");
 }
+
+void smak::netController::opQuit(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser){
+    fromUser.get()->safeDisconnect();
+}
+
+void smak::netController::opKick(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string kickUserName;
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    kickUserName = jsonDom[F_NAME].GetString();
+
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    std::string channelName = jsonDom[F_CHANNEL].GetString();
+
+    for (std::shared_ptr<smak::Channel> channel : serverState->getChannels()){
+        if (channel.get()->getName() == channelName){
+            for (std::shared_ptr<smak::User> user : channel.get()->getUsers()) {
+                if (user.get()->getName() == kickUserName){
+                    channel.get()->leave(user);
+                    fromUser.get()->sendString("User was kicked from channel");
+                    return;
+                }
+            }
+        }
+    }
+    fromUser.get()->sendString("Could not find any user named: " + kickUserName + " in channel: " + channelName);
+}
+
+void smak::netController::opKill(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string killUserName;
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    killUserName = jsonDom[F_NAME].GetString();
+
+    for(std::shared_ptr<smak::User> user : serverState->getUsers()){
+        if (user.get()->getName() == killUserName){
+            user.get()->sendString("You have been removed from the server.");
+            user.get()->safeDisconnect();
+            return;
+        }
+    }
+    fromUser.get()->sendString("Could not find user: " + killUserName);
+}
+
