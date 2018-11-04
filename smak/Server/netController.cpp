@@ -20,6 +20,10 @@
 #define OP_QUIT "QUIT"
 #define OP_KICK "KICK"
 #define OP_KILL "KILL"
+#define OP_LOCK_CHANNEL "LOCKCHANNEL"
+#define OP_UNLOCK_CHANNEL "UNLOCKCHANNEL"
+#define OP_KNOCK "KNOCK"
+#define OP_INVITE "INVITE"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -83,8 +87,18 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_KILL){
             opKill(jsonDom, fromUser);
         }
-
-
+        else if (op == OP_LOCK_CHANNEL){
+            opLockChannel(jsonDom, fromUser);
+        }
+        else if (op == OP_UNLOCK_CHANNEL) {
+            opUnlockChannel(jsonDom, fromUser);
+        }
+        else if (op == OP_KNOCK) {
+            opKnock(jsonDom, fromUser);
+        }
+        else if (op == OP_INVITE){
+            opInvite(jsonDom, fromUser);
+        }
 
 
     }
@@ -125,8 +139,6 @@ void smak::netController::closeUserConnection(std::shared_ptr<User> userToClose)
 }
 
 void smak::netController::opSetName(const rapidjson::Document& jsonDom, std::shared_ptr<User> fromUser) {
-    const std::string NAME_FIELD = "name";
-
     fromUser.get()->sendString("Your name used to be: " + fromUser.get()->getName());
 
     std::string newName;
@@ -145,21 +157,29 @@ void smak::netController::opJoin(const rapidjson::Document& jsonDom, std::shared
     std::string channelName = jsonDom[F_CHANNEL].GetString();
 
     auto existingChannels = serverState->getChannels();
-    bool joined = false;
     for (auto channel : existingChannels){
         if(channel.get()->getName() == channelName){
+            if (channel.get()->isInviteOnly()){
+                for (std::shared_ptr<smak::User> invitedUser : channel.get()->getInvitedUsers()){
+                    if (invitedUser.get()->getName() == fromUser.get()->getName()){
+                        channel.get()->join(fromUser);
+                        fromUser.get()->sendString("You joined the invite only channel: " + channelName);
+                        return;
+                    }
+                }
+                fromUser.get()->sendString(channelName + "is invite only. You are not invited.");
+                return;
+            }
             channel.get()->join(fromUser);
-            joined = true;
             fromUser.get()->sendString("You joined channel: " + channelName);
-            break;
+            return;
         }
     }
-    if (!joined){
-        smak::Channel channel(channelName);
-        channel.join(fromUser);
-        fromUser.get()->sendString("You created channel: " + channelName);
-        serverState->addChannel(make_shared<smak::Channel>(channel));
-    }
+    smak::Channel channel(channelName);
+    channel.join(fromUser);
+    fromUser.get()->sendString("You created channel: " + channelName);
+    serverState->addChannel(make_shared<smak::Channel>(channel));
+
 }
 
 void smak::netController::opMsg(const rapidjson::Document& jsonDom, std::shared_ptr<smak::User> fromUser){
@@ -365,4 +385,72 @@ void smak::netController::opKill(const rapidjson::Document &jsonDom, std::shared
     }
     fromUser.get()->sendString("Could not find user: " + killUserName);
 }
+
+void smak::netController::setChannelLock(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser, bool lockState) {
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    std::string channelName = jsonDom[F_CHANNEL].GetString();
+
+    for(auto channel : serverState->getChannels()){
+        if (channel.get()->getName() == channelName){
+            channel.get()->setInviteOnly(lockState);
+            fromUser.get()->sendString("Channel lock set for: " + channelName);
+            return;
+        }
+    }
+    fromUser.get()->sendString("Could not set channel lock for: " + channelName);
+}
+
+void smak::netController::opKnock(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    std::string channelName = jsonDom[F_CHANNEL].GetString();
+    for(auto channel : serverState->getChannels()){
+        if (channel.get()->getName() == channelName){
+            for (std::shared_ptr<smak::User> user  : channel.get()->getUsers()){
+                user.get()->sendString(fromUser.get()->getName() + " would like to join: " + channelName);
+            }
+            fromUser.get()->sendString("Knocks sent to users of channel:  " + channelName);
+            return;
+        }
+    }
+    fromUser.get()->sendString("Error knocking on channel");
+
+}
+
+void smak::netController::opInvite(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    // get the user to invite
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    std::string inviteUserName = jsonDom[F_NAME].GetString();
+    // get the channel to invite them to
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    std::string channelName = jsonDom[F_CHANNEL].GetString();
+
+    std::shared_ptr<smak::User> inviteUser = make_shared<smak::User>(nullptr);
+    for(auto user : serverState->getUsers()){
+        if (user.get()->getName() == inviteUserName){
+            inviteUser = make_shared<smak::User>(*user.get());
+            break;
+        }
+    }
+    // TODO: Make this not die with bad usernames
+    if (inviteUser.get() == nullptr){
+        fromUser.get()->sendString("Could not find user: " + inviteUserName);
+        return;
+    }
+
+    for (auto channel : serverState->getChannels()){
+        if(channel.get()->getName() == channelName){
+            channel.get()->inviteUser(inviteUser);
+            inviteUser.get()->sendString("You've been invited to channel: " + channelName);
+            fromUser.get()->sendString("Invited user: " + inviteUserName + " to channel: " + channelName);
+            return;
+        }
+    }
+    fromUser.get()->sendString("Could not find channel: " + channelName);
+}
+
+
 
