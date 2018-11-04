@@ -18,11 +18,17 @@ namespace smak{
         void leave(std::shared_ptr<smak::User>& user);
         const std::set<std::shared_ptr<smak::User>>& getUsers();
         void const sendMessage(const std::string& message);
+        void setInviteOnly(bool inviteOnly);
+        void inviteUser(std::shared_ptr<smak::User> user);
+        std::set<std::shared_ptr<smak::User>> getInvitedUsers();
+        bool isInviteOnly();
         std::string getName();
 
     private:
         std::set<std::shared_ptr<smak::User>> userList;
+        std::set<std::shared_ptr<smak::User>> invitedUsers;
         std::string channelName;
+        bool inviteOnly;
     };
 }
 
