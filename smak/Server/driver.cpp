@@ -93,6 +93,9 @@ int smak::driver::driverMain(int argc, char **argv)
         threadList.push_back(std::move(t));
 
         //TODO: call the write function in srvState to update files on channels, users etc
+       // serverState.writeFiles();
+       // serverState.closeFiles(); //close all files to avoid memory leak
+
 
         id++; //not the best way to go about it.
     }
@@ -104,6 +107,7 @@ int smak::driver::driverMain(int argc, char **argv)
         t.get()->join();   //joining all of the active sockets in threadlist vector together
     }
     std::cout<<"Joined all threads\n";
+    //serverState.writeFiles();
     serverState.closeFiles(); //close all files to avoid memory leak
 
     std::cout << "Server is shutting down after one client\n";

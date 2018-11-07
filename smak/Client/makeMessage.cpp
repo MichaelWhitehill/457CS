@@ -169,7 +169,9 @@ std::string makeMessage::KILL() {
 }
 
 std::string makeMessage::KNOCK() {
-    return std::__cxx11::string();
+
+
+
 }
 
 std::string makeMessage::NICK() {
@@ -231,9 +233,7 @@ std::string makeMessage::PRIVMSG() {
     return buffer.GetString();
 }
 
-std::string makeMessage::QUIT() {
-    return std::__cxx11::string();
-}
+
 
 std::string makeMessage::SETNAME() {
     std::string json = "{\"OP\":\"SETNAME\"}";
@@ -271,17 +271,7 @@ std::string makeMessage::USERIP() {
     return std::__cxx11::string();
 }
 
-std::string makeMessage::USERS() {
-    std::string json = "{\"OP\":\"USERS\"}";
-    rapidjson::Document d;
-    d.Parse(json.c_str());
 
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    d.Accept(writer);
-
-    return buffer.GetString();
-}
 
 std::string makeMessage::WALLOPS() {
     return std::__cxx11::string();
@@ -295,10 +285,18 @@ std::string makeMessage::WHOIS() {
     return std::__cxx11::string();
 }
 
-std::string makeMessage::INFO() {
-    std::string json = "{\"OP\":\"INFO\"}";
+std::string makeMessage::LOCK() {
+    std::string json = "{\"OP\":\"LOCK\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the channel name to LOCK: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value val;
+    val = StringRef(channel.c_str());
+    d.AddMember("channel", val, d.GetAllocator());
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -307,10 +305,18 @@ std::string makeMessage::INFO() {
     return buffer.GetString();
 }
 
-std::string makeMessage::PING() {
-    std::string json = "{\"OP\":\"PING\"}";
+std::string makeMessage::UNLOCK() {
+    std::string json = "{\"OP\":\"UNLOCK\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    std::cout << "Please enter the channel name to UNLOCK: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value val;
+    val = StringRef(channel.c_str());
+    d.AddMember("channel", val, d.GetAllocator());
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -319,10 +325,19 @@ std::string makeMessage::PING() {
     return buffer.GetString();
 }
 
-std::string makeMessage::TIME() {
-    std::string json = "{\"OP\":\"TIME\"}";
+
+
+//ALL THE BELOW METHODS CAN BE PUT ALL INTO ONE METHOD - just pass a JSON string and populate the OP field
+
+//TIME , VERSION, RULES, PING, INFO, USERS, QUIT
+std::string makeMessage::PARSE(std::string passedOP) {
+    std::string json = "{}";
     rapidjson::Document d;
     d.Parse(json.c_str());
+
+    rapidjson::Value val;
+    val = StringRef(passedOP.c_str());
+    d.AddMember("OP", val, d.GetAllocator());
 
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
@@ -330,6 +345,7 @@ std::string makeMessage::TIME() {
 
     return buffer.GetString();
 }
+
 
 
 

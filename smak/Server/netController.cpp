@@ -24,6 +24,8 @@
 #define OP_UNLOCK_CHANNEL "UNLOCKCHANNEL"
 #define OP_KNOCK "KNOCK"
 #define OP_INVITE "INVITE"
+#define OP_RULES "RULES"
+#define OP_VERSION "VERSION"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -98,6 +100,12 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         }
         else if (op == OP_INVITE){
             opInvite(jsonDom, fromUser);
+        }
+        else if (op == OP_RULES){
+            opRules(jsonDom, fromUser);
+        }
+        else if (op == OP_VERSION){
+            opVersion(jsonDom, fromUser);
         }
 
 
@@ -391,14 +399,20 @@ void smak::netController::setChannelLock(const rapidjson::Document &jsonDom, std
     assert(jsonDom[F_CHANNEL].IsString());
     std::string channelName = jsonDom[F_CHANNEL].GetString();
 
-    for(auto channel : serverState->getChannels()){
-        if (channel.get()->getName() == channelName){
-            channel.get()->setInviteOnly(lockState);
-            fromUser.get()->sendString("Channel lock set for: " + channelName);
-            return;
-        }
+    if(fromUser.get()->getLevel()=="user"){
+        fromUser.get()->sendString("Could not set channel lock for: " + channelName + " You do not have the correct permissions");
     }
-    fromUser.get()->sendString("Could not set channel lock for: " + channelName);
+
+    else {
+        for (auto channel : serverState->getChannels()) {
+            if (channel.get()->getName() == channelName) {
+                channel.get()->setInviteOnly(lockState);
+                fromUser.get()->sendString("Channel lock set for: " + channelName);
+                return;
+            }
+        }
+        fromUser.get()->sendString("Could not set channel lock for: " + channelName);
+    }
 }
 
 void smak::netController::opKnock(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -450,6 +464,16 @@ void smak::netController::opInvite(const rapidjson::Document &jsonDom, std::shar
         }
     }
     fromUser.get()->sendString("Could not find channel: " + channelName);
+}
+
+void smak::netController::opRules(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
+    fromUser.get()->sendString("Server Rules are: " + serverState->getRules() + " For more information on server use OP code INFO");
+}
+
+void smak::netController::opVersion(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    fromUser.get()->sendString("Server Version is: " + serverState->getVersion() + " For more information on server use OP code INFO");
+
 }
 
 

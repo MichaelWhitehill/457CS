@@ -20,7 +20,6 @@ struct clientInfo{
 
 static auto t = time(NULL); //var for current time
 
-// enum ops{HELP,JSON,MSG,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS};
 static std::map <std::string, ops> mapString;
 
 
@@ -50,7 +49,6 @@ int client::clientMain(int argc, char *argv[])
 
 
        for(std::string line; std::getline(read, line);){
-        //parse the file line by line and populate vars vs messing with pointers
         std::vector<std::string> parse = split(line);
         if(parse[0]=="-h"){
             std::vector<char> temp(parse[1].length()+1);
@@ -80,7 +78,6 @@ int client::clientMain(int argc, char *argv[])
 
 
    //create log file and set member var if file does not exist already: - **LogFile variable should include directory path!!
-   // std:: cout << clientState.logFile << std::endl;
 
     if(!fileExists(clientState.logFile)){
        clientState.logFileWrite = std::ofstream(clientState.logFile);
@@ -196,15 +193,11 @@ void client::writeSock(int sockFd, const int* disconnect) {
     ssize_t errNo;
     std::string input;
 
-
-
-    if(clientState.level.empty()){error("ERROR: Level was not set for client, check .conf file arguments");}
-    else{   //Send INITIAL_NAME JSON to server to set Name from .conf file
         std::string info = makeMessage::INITIAL_SETTINGS(clientState.userName, clientState.password, clientState.level);
         errNo = write(sockFd, info.c_str(), info.size());
         if (errNo < 0)
             error("ERROR writing to socket in INITIAL_SETTINGS");
-    }
+
 
     while(true){
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -215,6 +208,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
         std::getline(std::cin, input);
         //input += "\n";
         input = std::regex_replace(input, std::regex("^ +| +$|( ) +"), "$1"); //Trim any trailing or leading whitespace
+       // std::transform(input.begin(), input.end(), input.begin(),std::toupper(input));
 
         auto it = mapString.find(input);
         if(input.empty() || it == mapString.end()){error("ERROR: User input was invalid");}
@@ -307,7 +301,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                 }
 
                 case INFO:{
-                    auto temp = makeMessage::INFO();
+                    auto temp = makeMessage::PARSE("INFO");
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in INFO");
@@ -325,7 +319,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                 }
 
                 case PING:{
-                    auto temp = makeMessage::PING();
+                    auto temp = makeMessage::PARSE("PING");
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in PING");
@@ -343,7 +337,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
                 }
 
                 case USERS:{
-                    auto temp = makeMessage::USERS();
+                    auto temp = makeMessage::PARSE("USERS");
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in USERS");
@@ -352,13 +346,59 @@ void client::writeSock(int sockFd, const int* disconnect) {
                 }
 
                 case TIME:{
-                    auto temp = makeMessage::TIME();
+                    auto temp = makeMessage::PARSE("TIME");
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in TIME");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "TIME: " << temp << std::endl;
                     break;
                 }
+
+                case QUIT:{
+                    auto temp = makeMessage::PARSE("QUIT");
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in QUIT");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "QUIT: " << temp << std::endl;
+                    break;
+                }
+
+                case RULES:{
+                    auto temp = makeMessage::PARSE("RULES");
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in RULES");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "RULES: " << temp << std::endl;
+                    break;
+                }
+
+                case VERSION:{
+                    auto temp = makeMessage::PARSE("VERSION");
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in VERSION");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "VERSION" << temp << std::endl;
+                    break;
+                }
+
+                case LOCK:{
+                    auto temp = makeMessage::LOCK();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in LOCK");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "LOCK" << temp << std::endl;
+                    break;
+                }
+
+                case UNLOCK:{
+                    auto temp = makeMessage::UNLOCK();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in UNLOCK");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "UNLOCK" << temp << std::endl;
+                    break;
+                }
+
 
 
 
@@ -376,6 +416,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
             error("ERROR writing to socket");
     }
 }
+
 
 
 
@@ -487,9 +528,13 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["WALLOPS"] = WALLOPS;
     mapString["WHO"] = WHO;
     mapString["WHOIS"] = WHOIS;
-    mapString["INFO"]= INFO;
-    mapString["PING"]=PING;
-    mapString["TIME"]=TIME;
+    mapString["INFO"] = INFO;
+    mapString["PING"] = PING;
+    mapString["TIME"] = TIME;
+    mapString["RULES"] = RULES;
+    mapString["VERSION"] = VERSION;
+    mapString["LOCK"] = LOCK;
+    mapString["UNLOCK"] = UNLOCK;
 
 }
 

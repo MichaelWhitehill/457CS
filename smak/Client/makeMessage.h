@@ -15,6 +15,8 @@ class makeMessage {
 
 public : static std::string INITIAL_SETTINGS(std::string name, std::string password, std::string level);
 
+public : static std::string PARSE(std::string passedOP); //To be used for all single command JSON OP's
+
 public : static std::string MSG();
 
 public : static std::string AWAY();
@@ -41,8 +43,6 @@ public : static std::string PASS();
 
 public : static std::string PRIVMSG();
 
-public : static std::string QUIT();
-
 public : static std::string SETNAME();
 
 public : static std::string TOPIC();
@@ -53,20 +53,15 @@ public : static std::string USERHOST();
 
 public : static std::string USERIP();
 
-public : static std::string USERS();
-
 public : static std::string WALLOPS();
 
 public : static std::string WHO();
 
 public : static std::string WHOIS();
 
-public : static std::string INFO();
+public : static std::string LOCK();
 
-public : static std::string PING();
-
-public : static std::string TIME();
-
+public : static std::string UNLOCK();
 
 
 };

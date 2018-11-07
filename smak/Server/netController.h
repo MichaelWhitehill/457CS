@@ -83,6 +83,10 @@ namespace smak{
 
         void setChannelLock(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser, bool lockState);
 
+        void opRules(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opVersion(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
 
     };
 }

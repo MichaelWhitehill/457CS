@@ -6,7 +6,7 @@
 #include "srvState.h"
 
 struct serverInfo{
-    std::string ServerName, banUsersPath, userLogPath, channelLogPath, bannerPath, startTime;
+    std::string ServerName, banUsersPath, userLogPath, channelLogPath, bannerPath, startTime, rules, version;
     std::ofstream banUsersFile, userLogFile, channelLogFile;
     int port =0;
 }serverState;
@@ -42,7 +42,14 @@ smak::srvState::srvState(std::vector<std::unique_ptr<std::thread>> *threadList_p
             else if(parse[0]=="-u"){serverState.userLogPath = parse[1];}
             else if(parse[0]=="-c"){serverState.channelLogPath = parse[1];}
             else if(parse[0]=="-p"){serverState.port = stoi(parse[1]);}
-            //need to implement banner file path if we want to do it for extra credit to display at login
+            else if(parse[0]=="-v"){serverState.version = parse[1];}
+            else if(parse[0]=="-r") {
+                for (int i =1; i<parse.size();i++) {
+                    serverState.rules.append(parse[i]+" ");
+                }
+            }
+
+                //need to implement banner file path if we want to do it for extra credit to display at login
             else{throw std::string ("ERROR: Incorrect args in server .conf file\n"
                                     "Server args are in the form -s ServerName -p port# -b banned_users_file_path -u users_log_path -c channel_log_path");}
         }
@@ -229,7 +236,52 @@ std::string smak::srvState::getStartTime() {
 
 void smak::srvState::writeFiles() {
 
+    std::string userDet = "USER_LIST at time: ["+getTime()+"] ";
+    for (auto user: users){
+        userDet.append("User_Name: "+user->getName());
+        userDet.append(" User_Password: "+user->getPassword());
+        userDet.append(" User_Level: "+user->getLevel());
+        std::string away;
+        if(user->getAwayMsg()=="here")away.append(" User is currently here, no AWAY message set");
+        else away.append(" User is currently AWAY- msg is: "+user->getAwayMsg());
+        userDet.append(away+"\n");
+    }
+    serverState.userLogFile << userDet <<std::endl; //46 spaces to line up formatting
+
+
+    std::string channelDet = "CHANNEL_LIST at time: ["+getTime()+"] ";
+    if(channelList.size()==0){
+        channelDet.append("-No active channels at this time-");
+    }
+    else {
+        for (auto channel: channelList) {
+            channelDet.append("Channel_Name: " + channel->getName());
+            std::string invite;
+            if (channel->isInviteOnly())invite = "True";
+            else invite = "False";
+            channelDet.append("Is_Invite_Only: " + invite);
+
+            channelDet.append(" Users Currently on Channel: ");
+            for (auto user: channel->getUsers()) {
+                channelDet.append(user->getName() + ", ");
+            }
+        }
+    }
+    serverState.channelLogFile << channelDet << std::endl;
+
+
+    //TODO: write to banned user file log for server
+
 }
+
+std::string smak::srvState::getRules() {
+    return serverState.rules;
+}
+
+std::string smak::srvState::getVersion() {
+    return serverState.version;
+}
+
 
 
 

@@ -78,6 +78,9 @@ namespace smak{
         int getPort();
         std::string getName();
         std::string getStartTime();
+        std::string getRules();
+        std::string getVersion();
+
 
 
     private:
