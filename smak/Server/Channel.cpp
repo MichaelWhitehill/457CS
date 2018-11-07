@@ -50,3 +50,11 @@ bool smak::Channel::isInviteOnly() {
     return inviteOnly;
 }
 
+std::string smak::Channel::getTopic() {
+    return topic;
+}
+
+void smak::Channel::setTopic(std::string passed) {
+    topic = passed;
+}
+

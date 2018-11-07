@@ -26,12 +26,15 @@
 #define OP_INVITE "INVITE"
 #define OP_RULES "RULES"
 #define OP_VERSION "VERSION"
+#define OP_TOPIC "TOPIC"
+#define OP_LIST "LIST"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
 #define F_MESSAGE "message"
 #define F_PASSWORD "password"
 #define F_LEVEL "level"
+#define F_TOPIC "topic"
 
 
 void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak::User> fromUser) {
@@ -106,6 +109,12 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         }
         else if (op == OP_VERSION){
             opVersion(jsonDom, fromUser);
+        }
+        else if (op == OP_TOPIC){
+            opTopic(jsonDom, fromUser);
+        }
+        else if (op == OP_LIST){
+            opList(jsonDom, fromUser);
         }
 
 
@@ -474,6 +483,49 @@ void smak::netController::opRules(const rapidjson::Document &jsonDom, std::share
 void smak::netController::opVersion(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
     fromUser.get()->sendString("Server Version is: " + serverState->getVersion() + " For more information on server use OP code INFO");
 
+}
+
+void smak::netController::opTopic(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string topic;
+    assert(jsonDom.HasMember(F_TOPIC));
+    assert(jsonDom[F_TOPIC].IsString());
+    topic = jsonDom[F_TOPIC].GetString();
+
+    std::string channelName;
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    channelName = jsonDom[F_CHANNEL].GetString();
+
+    bool found = false;
+
+    auto existingChannels = serverState->getChannels();
+    for (auto channel : existingChannels) {
+        if (channel.get()->getName() == channelName) {
+            channel.get()->setTopic(topic);
+            found = true;
+        }
+    }
+
+    if(!found){fromUser.get()->sendString("ERROR: Unable to find selected channel: "+channelName);}
+    else{fromUser.get()->sendString("Channel: "+channelName+" topic has successfully been set to: "+topic);}
+
+}
+
+void smak::netController::opList(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
+    std::string channelName = "CHANNELS CURRENTLY ACTIVE ON SERVER: "+serverState->getName()+"\n";
+
+    auto existingChannels = serverState->getChannels();
+    for (auto channel : existingChannels) {
+
+        channelName.append("Name:" +channel.get()->getName() + " Topic: ");
+        if(channel.get()->getTopic()==""){
+            channelName.append("[topic has not been set for this channel - topic can be set using OP code TOPIC]\n");
+        }else{channelName.append("[" +channel.get()->getTopic()+"]\n");
+        }
+
+        fromUser.get()->sendString(channelName);
+    }
 }
 
 

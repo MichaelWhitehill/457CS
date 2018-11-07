@@ -23,12 +23,15 @@ namespace smak{
         std::set<std::shared_ptr<smak::User>> getInvitedUsers();
         bool isInviteOnly();
         std::string getName();
+        void  setTopic(std::string passed);
+        std::string getTopic();
 
     private:
         std::set<std::shared_ptr<smak::User>> userList;
         std::set<std::shared_ptr<smak::User>> invitedUsers;
-        std::string channelName;
+        std::string channelName, topic;
         bool inviteOnly;
+
     };
 }
 

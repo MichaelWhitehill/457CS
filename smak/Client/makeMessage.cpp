@@ -256,7 +256,32 @@ std::string makeMessage::SETNAME() {
 }
 
 std::string makeMessage::TOPIC() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"TOPIC\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter the channel to set TOPIC for: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value val;
+    val = StringRef(channel.c_str());
+    d.AddMember("channel", val, d.GetAllocator());
+
+    std::string topic;
+    std::cout << "Please enter the Topic you want to set for this channel: " << std::endl;
+    std::getline(std::cin, topic);
+
+    rapidjson::Value contact;
+    contact = StringRef(topic.c_str());
+    d.AddMember("topic", contact, d.GetAllocator());
+
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::USER() { //This is implemented through SET method
