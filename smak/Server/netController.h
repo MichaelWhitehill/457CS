@@ -91,6 +91,10 @@ namespace smak{
 
         void opList(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
+        void opPart(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opIson(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
     };
 }
 

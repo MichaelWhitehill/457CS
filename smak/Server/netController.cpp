@@ -28,6 +28,8 @@
 #define OP_VERSION "VERSION"
 #define OP_TOPIC "TOPIC"
 #define OP_LIST "LIST"
+#define OP_PART "PART"
+#define OP_ISON "ISON"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -116,6 +118,13 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_LIST){
             opList(jsonDom, fromUser);
         }
+        else if (op == OP_PART){
+            opPart(jsonDom, fromUser);
+        }
+        else if (op == OP_ISON){
+            opIson(jsonDom, fromUser);
+        }
+
 
 
     }
@@ -307,7 +316,7 @@ void smak::netController::opInfo(const rapidjson::Document &jsonDom, std::shared
     std::string beginTime = serverState->getStartTime();
     std::string curTime = serverState->getTime();
 
-    fromUser.get()->sendString("The server you are on is: " + Name + "\nThis server has been running since: "+beginTime+"\nThe current time is: "+curTime+"\nFor more info use OP code LIST");
+    fromUser.get()->sendString("\n\nThe server you are on is: " + Name + "\nThis server has been running since: "+beginTime+"\nThe current time is: "+curTime+"\nFor more info use OP code LIST");
 }
 
 void smak::netController::opPing(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -513,7 +522,7 @@ void smak::netController::opTopic(const rapidjson::Document &jsonDom, std::share
 
 void smak::netController::opList(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
 
-    std::string channelName = "CHANNELS CURRENTLY ACTIVE ON SERVER: "+serverState->getName()+"\n";
+    std::string channelName = "\n\nCHANNELS CURRENTLY ACTIVE ON SERVER: "+serverState->getName()+"\n";
 
     auto existingChannels = serverState->getChannels();
     for (auto channel : existingChannels) {
@@ -526,6 +535,47 @@ void smak::netController::opList(const rapidjson::Document &jsonDom, std::shared
 
         fromUser.get()->sendString(channelName);
     }
+}
+
+void smak::netController::opPart(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
+    std::string channelName;
+    assert(jsonDom.HasMember(F_CHANNEL));
+    assert(jsonDom[F_CHANNEL].IsString());
+    channelName = jsonDom[F_CHANNEL].GetString();
+
+    bool found = false;
+
+    auto existingChannels = serverState->getChannels();
+    for (auto channel : existingChannels) {
+        if (channel.get()->getName() == channelName) {
+            channel.get()->leave(fromUser);
+            found = true;
+        }
+    }
+
+    if(!found){fromUser.get()->sendString("ERROR: Unable to find selected channel: "+channelName);}
+    else{fromUser.get()->sendString("You have successfully been removed from  channel: "+ channelName);}
+
+}
+
+void smak::netController::opIson(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string name;
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    name = jsonDom[F_NAME].GetString();
+
+
+    bool found = false;
+    for (auto users : serverState->getUsers()){
+        if(users.get()->getName()==name){
+            found = true;
+        }
+    }
+
+    if(found){fromUser.get()->sendString("User: "+name+" is currently on the server: "+serverState->getName());}
+    else {fromUser.get()->sendString("User: "+name+" is not a user listed on the server: "+serverState->getName());}
+
 }
 
 
