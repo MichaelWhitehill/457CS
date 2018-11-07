@@ -6,6 +6,7 @@
 #include "main.h"
 #include "Client/client.h"
 #include "Server/driver.h"
+#include "../smaker/smakerMain.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -27,6 +28,9 @@ int main (int argc, char* argv[]){
     else if(toStart == "clt"){
         return client::clientMain(newArgc, newArgv);
         //NEED TO PASS PORT # and config file path
+    }
+    else if(toStart == "smaker"){
+        return smakerMain::main(newArgc, newArgv);
     }
 }
 void error(const char *msg) {
