@@ -121,6 +121,10 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_PART){
             opPart(jsonDom, fromUser);
         }
+        else if (op == OP_ISON){
+            opIson(jsonDom, fromUser);
+        }
+
 
 
     }
@@ -568,7 +572,7 @@ void smak::netController::opIson(const rapidjson::Document &jsonDom, std::shared
             found = true;
         }
     }
-    
+
     if(found){fromUser.get()->sendString("User: "+name+" is currently on the server: "+serverState->getName());}
     else {fromUser.get()->sendString("User: "+name+" is not a user listed on the server: "+serverState->getName());}
 
