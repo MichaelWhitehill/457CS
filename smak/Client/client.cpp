@@ -150,16 +150,14 @@ int client::clientMain(int argc, char *argv[])
 
 
 void client::listenAndPrint(int sockFd, int* disconnect) {
-    char buffer[256];
-    uint bufferSize = 256;
+    char buffer[2048];
+    uint bufferSize = 2048;
     ssize_t errNo;
     while(true){
-        memset(buffer, 0, 256);
-        errNo = read(sockFd,buffer,255);
+        memset(buffer, 0, 2048);
+        errNo = read(sockFd,buffer,2048);
         if (errNo < 0)
             error("ERROR reading from socket");
-
-
 
         std::cout<< "RECIEVED: "<<buffer<<std::endl; //This freaks out in an infinite loop if there is another client opened and that client closes unexpectedly
         std::string recString = buffer;
@@ -399,6 +397,23 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case TOPIC:{
+                    auto temp = makeMessage::TOPIC();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in TOPIC");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "TOPIC" << temp << std::endl;
+                    break;
+                }
+
+                case LIST:{
+                    auto temp = makeMessage::PARSE("LIST");
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in LIST");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "LIST" << temp << std::endl;
+                    break;
+                }
 
 
 
@@ -535,6 +550,7 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["VERSION"] = VERSION;
     mapString["LOCK"] = LOCK;
     mapString["UNLOCK"] = UNLOCK;
+    mapString["LIST"]= LIST;
 
 }
 
