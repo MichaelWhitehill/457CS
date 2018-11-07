@@ -1,0 +1,17 @@
+51718
+localhost
+SEND: {"OP":"SETNAME","name":"Mr. Shrek"}
+REC: _SERVER_: recvd message
+REC: Your name used to be: Anon
+REC: Your new name is to be: Mr. Shrek
+SEND: {"OP":"JOIN","channel":"the swamp"}
+REC: _SERVER_: recvd message
+REC: You created channel: the swamp
+SEND: {"OP":"JOIN","channel":"the swamp"}
+REC: _SERVER_: recvd message
+REC: You joined channel: the swamp
+SEND: {"OP":"LOCKCHANNEL","channel":"the swamp"}
+REC: _SERVER_: recvd message
+REC: Channel lock set for: the swamp
+SEND: {"OP":"QUIT"}
+REC: GOODBYE
