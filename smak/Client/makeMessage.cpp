@@ -184,8 +184,23 @@ std::string makeMessage::NOTICE() {
 }
 
 std::string makeMessage::PART() {
-    return std::__cxx11::string();
-}
+    std::string json = "{\"OP\":\"PART\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::string channel;
+    std::cout << "Please enter the channel you want to leave: " << std::endl;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value contact;
+    contact = StringRef(channel.c_str());
+    d.AddMember("channel", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();}
 
 std::string makeMessage::OPER() {
     std::string json = "{\"OP\":\"OPER\"}";
@@ -296,7 +311,26 @@ std::string makeMessage::USERIP() {
     return std::__cxx11::string();
 }
 
+std::string makeMessage::ISON() {
 
+    std::string json = "{\"OP\":\"ISON\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::string name;
+    std::cout << "Please enter the name to query: " << std::endl;
+    std::getline(std::cin, name);
+
+    rapidjson::Value contact;
+    contact = StringRef(name.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}
 
 std::string makeMessage::WALLOPS() {
     return std::__cxx11::string();
@@ -370,6 +404,8 @@ std::string makeMessage::PARSE(std::string passedOP) {
 
     return buffer.GetString();
 }
+
+
 
 
 

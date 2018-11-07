@@ -415,6 +415,24 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case PART:{
+                    auto temp = makeMessage::PART();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in PART");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "PART" << temp << std::endl;
+                    break;
+                }
+
+                case ISON:{
+                    auto temp = makeMessage::ISON();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in ISON");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "ISON" << temp << std::endl;
+                    break;
+                }
+
 
 
                 default:
@@ -551,6 +569,7 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["LOCK"] = LOCK;
     mapString["UNLOCK"] = UNLOCK;
     mapString["LIST"]= LIST;
+    mapString["ISON"]= ISON;
 
 }
 

@@ -63,6 +63,8 @@ public : static std::string LOCK();
 
 public : static std::string UNLOCK();
 
+public : static std::string ISON();
+
 
 };
 
