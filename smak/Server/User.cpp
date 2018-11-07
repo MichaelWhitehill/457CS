@@ -45,3 +45,4 @@ void smak::User::setLevel(std::string& lev) {
 void smak::User::safeDisconnect() {
     disconnect_flag = true;
 }
+

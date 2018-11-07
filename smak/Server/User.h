@@ -54,7 +54,9 @@ namespace smak{
 
         bool disconnect() { return disconnect_flag;}
 
+        bool isBanned(){return banned;        }
 
+        void setBan(bool passed){banned = passed;};
 
         /**
          * Sends  a string to the specified user. It uses multithreading and all that jazz
@@ -76,7 +78,7 @@ namespace smak{
         // disconnect is also used in a more trivial case for QUITE but unlike kick we don't get caught in a blocking
         // call
         bool disconnect_flag;
-        //bool banned; ??
+        bool banned = false;
 
         std::shared_ptr<smak::tcpUserSocket> session;
     };

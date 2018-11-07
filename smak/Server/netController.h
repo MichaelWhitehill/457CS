@@ -5,6 +5,43 @@
 #ifndef SMAK_NETCONTROLLER_H
 #define SMAK_NETCONTROLLER_H
 
+#define OP "OP"
+#define OP_SETNAME "SETNAME"
+#define OP_JOIN "JOIN"
+#define OP_MSG "MSG"
+#define OP_INITIAL_SETTINGS "USER"
+#define OP_PRIVMSG "PRIVMSG"
+#define OP_AWAY "AWAY"
+#define OP_INFO "INFO"
+#define OP_PING "PING"
+#define OP_OPER "OPER"
+#define OP_USERS "USERS"
+#define OP_TIME "TIME"
+#define OP_QUIT "QUIT"
+#define OP_KICK "KICK"
+#define OP_KILL "KILL"
+#define OP_LOCK_CHANNEL "LOCK"
+#define OP_UNLOCK_CHANNEL "UNLOCK"
+#define OP_KNOCK "KNOCK"
+#define OP_INVITE "INVITE"
+#define OP_RULES "RULES"
+#define OP_VERSION "VERSION"
+#define OP_TOPIC "TOPIC"
+#define OP_LIST "LIST"
+#define OP_PART "PART"
+#define OP_ISON "ISON"
+#define OP_SILENCE "SILENCE"
+#define OP_PASS "PASS"
+#define OP_NOTICE "NOTICE"
+
+#define F_CHANNEL "channel"
+#define F_NAME "name"
+#define F_MESSAGE "message"
+#define F_PASSWORD "password"
+#define F_LEVEL "level"
+#define F_TOPIC "topic"
+
+
 #include <string>
 #include "srvState.h"
 #include "../rapidjson/document.h"
@@ -94,6 +131,12 @@ namespace smak{
         void opPart(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
         void opIson(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opSilence(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opPass(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opNotice(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
     };
 }

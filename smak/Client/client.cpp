@@ -58,7 +58,11 @@ int client::clientMain(int argc, char *argv[])
         }
 
 
-        else if(parse[0]=="-u"){clientState.userName = parse[1];}
+        else if(parse[0]=="-u"){ //username may contain spaces
+            for (int i =1; i<parse.size();i++) {
+                clientState.userName.append(parse[i]+" ");
+            }
+        }
         else if(parse[0]=="-p"){clientState.port = stoi(parse[1]);}
         else if(parse[0]=="-t"){clientState.testFile = parse[1];}
         else if(parse[0]=="-L"){clientState.logFile = parse[1];}
@@ -67,12 +71,17 @@ int client::clientMain(int argc, char *argv[])
 
             // else if(parse[0]==""){error("ERROR: you may have trailing new lines in .config file");}
         else error("ERROR: Incorrect formatting in .config file\n "
-                   "Client args are in the form: -h hostname -u username (@ for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
+                   "Client args are in the form: -h hostname -u username (blank for no name) -p serverPort -c configFile -t testFile -L logFile -P password (@ for no pass) -a admin_level");
        }
 
        std::string uname = "[LOG]_";
-       uname.append(clientState.userName);
+       if(clientState.userName.empty())uname.append("Anon User: "+getTime());
+       else {
+           uname.append(clientState.userName);
+           uname = std::regex_replace(uname, std::regex("^ +| +$|( ) +"), "$1");
+       }
        clientState.logFile.append(uname);
+
    }
    else error("ERROR: Config file is unreadable");
 
@@ -190,12 +199,21 @@ void client::writeSock(int sockFd, const int* disconnect) {
 
     ssize_t errNo;
     std::string input;
+    ssize_t found = clientState.password.find('@');
 
+    //Initial client setup:
+    if((clientState.password == "@") && (!clientState.userName.empty())){//user has set a username but has not set a password - not allowed
+        error("ERROR: registered users with a username must provide a password at login");
+    }
+    if((found>0) && (clientState.password.length()!=1)){
+        error("ERROR: non empty passwords cannot contain the '@' symbol");
+    }
+        else {
         std::string info = makeMessage::INITIAL_SETTINGS(clientState.userName, clientState.password, clientState.level);
         errNo = write(sockFd, info.c_str(), info.size());
         if (errNo < 0)
             error("ERROR writing to socket in INITIAL_SETTINGS");
-
+    }
 
     while(true){
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -279,13 +297,20 @@ void client::writeSock(int sockFd, const int* disconnect) {
                 }
 
                 case KICK: {
-                    //TODO: add check for correct privileges to KICK a client
-
                     auto temp = makeMessage::KICK();
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in KICK");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "KICK: " << temp << std::endl;
+                    break;
+                }
+
+                case KILL:{
+                    auto temp = makeMessage::KILL();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in KILL");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "KILL: " << temp << std::endl;
                     break;
                 }
 
@@ -433,6 +458,43 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case SILENCE:{
+                    auto temp = makeMessage::SILENCE();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in SILENCE");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "SILENCE" << temp << std::endl;
+                    break;
+                }
+
+                case PASS:{
+                    auto temp = makeMessage::PASS();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in PASS");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "PASS" << temp << std::endl;
+                    break;
+                }
+
+                case NICK:{
+                    auto temp = makeMessage::SETNAME();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in NICK");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NICK" << temp << std::endl;
+                    break;
+                }
+
+                case NOTICE: {
+                    auto temp = makeMessage::NOTICE();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in NOTICE");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NOTICE" << temp << std::endl;
+                    break;
+                }
+
+
 
 
                 default:
@@ -570,6 +632,7 @@ void client::initialize(std::map <std::string, ops>& mapString) {
     mapString["UNLOCK"] = UNLOCK;
     mapString["LIST"]= LIST;
     mapString["ISON"]= ISON;
+    mapString["SILENCE"]=SILENCE;
 
 }
 

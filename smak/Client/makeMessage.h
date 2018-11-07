@@ -31,8 +31,6 @@ public : static std::string KILL();
 
 public : static std::string KNOCK();
 
-public : static std::string NICK();
-
 public : static std::string NOTICE();
 
 public : static std::string PART();
@@ -46,8 +44,6 @@ public : static std::string PRIVMSG();
 public : static std::string SETNAME();
 
 public : static std::string TOPIC();
-
-public : static std::string USER();
 
 public : static std::string USERHOST();
 
@@ -64,6 +60,8 @@ public : static std::string LOCK();
 public : static std::string UNLOCK();
 
 public : static std::string ISON();
+
+public : static std::string SILENCE();
 
 
 };

@@ -5,43 +5,9 @@
 #include "netController.h"
 #include "../rapidjson/document.h"
 
-#define OP "OP"
-#define OP_SETNAME "SETNAME"
-#define OP_JOIN "JOIN"
-#define OP_MSG "MSG"
-#define OP_INITIAL_SETTINGS "USER"
-#define OP_PRIVMSG "PRIVMSG"
-#define OP_AWAY "AWAY"
-#define OP_INFO "INFO"
-#define OP_PING "PING"
-#define OP_OPER "OPER"
-#define OP_USERS "USERS"
-#define OP_TIME "TIME"
-#define OP_QUIT "QUIT"
-#define OP_KICK "KICK"
-#define OP_KILL "KILL"
-#define OP_LOCK_CHANNEL "LOCKCHANNEL"
-#define OP_UNLOCK_CHANNEL "UNLOCKCHANNEL"
-#define OP_KNOCK "KNOCK"
-#define OP_INVITE "INVITE"
-#define OP_RULES "RULES"
-#define OP_VERSION "VERSION"
-#define OP_TOPIC "TOPIC"
-#define OP_LIST "LIST"
-#define OP_PART "PART"
-#define OP_ISON "ISON"
-
-#define F_CHANNEL "channel"
-#define F_NAME "name"
-#define F_MESSAGE "message"
-#define F_PASSWORD "password"
-#define F_LEVEL "level"
-#define F_TOPIC "topic"
-
 
 void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak::User> fromUser) {
-    // TODO: everything
-    // My Dommy's name is jason
+
     rapidjson::Document jsonDom;
     jsonDom.Parse(cmd.c_str());
 
@@ -124,14 +90,20 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_ISON){
             opIson(jsonDom, fromUser);
         }
+        else if (op == OP_SILENCE){
+            opSilence(jsonDom, fromUser);
+        }
+        else if (op == OP_PASS){
+            opPass(jsonDom, fromUser);
+        }
+        else if (op == OP_NOTICE){
+            opNotice(jsonDom, fromUser);
+        }
 
 
 
     }
-    // This is legacy. It just broadcasts messages that are not json ***THIS MAKES THE CLIENT FREAK OUT in an infinite loop
-    else {
-       // this->broadcastMessage(serverState->getChatLog());
-    }
+
     // TODO: Get rid of this
     serverState->appendToChat(cmd);
 }
@@ -193,7 +165,7 @@ void smak::netController::opJoin(const rapidjson::Document& jsonDom, std::shared
                         return;
                     }
                 }
-                fromUser.get()->sendString(channelName + "is invite only. You are not invited.");
+                fromUser.get()->sendString("ERROR: " +channelName + " is invite only. You are not currently invited to this channel.");
                 return;
             }
             channel.get()->join(fromUser);
@@ -216,6 +188,12 @@ void smak::netController::opMsg(const rapidjson::Document& jsonDom, std::shared_
     assert(jsonDom.HasMember(F_MESSAGE));
     assert(jsonDom[F_MESSAGE].IsString());
     std::string message = fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString(); //now we know who is saying what in the channel
+
+
+    if(fromUser.get()->isBanned()){
+        fromUser.get()->sendString("ERROR: cannot send MSG(s) while banned on server");
+        return;
+    }
 
     auto existingChannels = serverState->getChannels();
 
@@ -240,6 +218,12 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
 
     assert(jsonDom.HasMember(F_MESSAGE));
     assert(jsonDom[F_MESSAGE].IsString());
+
+    if(fromUser.get()->isBanned()){
+        fromUser.get()->sendString("ERROR: cannot send PRIVMSG(s) while banned on server");
+        return;
+    }
+
     std::string message = "[PRIVMSG] from " + fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString();
     std::string msgWhileAway = "[PRIVMSG] (sent while you were AWAY) from " + fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString();
 
@@ -247,8 +231,8 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
     auto allUsers = serverState->getUsers(); //Get all the current users and try to find the one specified in passed userName
 
     if(userName=="Anon"){
-        std::string errMsg = "__Cannot send a PRVMSG to anonymous users who have not provided a username or nickname__";
-        fromUser.get()->sendString(errMsg);
+        fromUser.get()->sendString("ERROR: Cannot send a PRIVMSG to anonymous users who have not provided a username or nickname");
+        return;
     }
     else{
     for (auto user : allUsers){
@@ -280,7 +264,7 @@ void smak::netController::opAway(const rapidjson::Document &jsonDom, std::shared
     std::string message = jsonDom[F_MESSAGE].GetString();
 
     fromUser.get()->setAwayMsg(message);
-
+    fromUser.get()->sendString("Your current AWAY message has been sen to: "+message);
 
 }
 
@@ -334,6 +318,7 @@ void smak::netController::opOper(const rapidjson::Document &jsonDom, std::shared
 
     if(level=="admin"||level=="sysop"){
         fromUser.get()->sendString("You are: "+name+" your level is: "+level+"\nFor info about other users use OP USERHOST for specific user or USERS fo all");
+        return;
     }
     else if(level == "channelop"){ //Find all the servers you are on
         auto existingChannels = serverState->getChannels();
@@ -373,6 +358,7 @@ void smak::netController::opQuit(const rapidjson::Document &jsonDom, std::shared
 }
 
 void smak::netController::opKick(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
     std::string kickUserName;
     assert(jsonDom.HasMember(F_NAME));
     assert(jsonDom[F_NAME].IsString());
@@ -382,18 +368,25 @@ void smak::netController::opKick(const rapidjson::Document &jsonDom, std::shared
     assert(jsonDom[F_CHANNEL].IsString());
     std::string channelName = jsonDom[F_CHANNEL].GetString();
 
-    for (std::shared_ptr<smak::Channel> channel : serverState->getChannels()){
-        if (channel.get()->getName() == channelName){
-            for (std::shared_ptr<smak::User> user : channel.get()->getUsers()) {
-                if (user.get()->getName() == kickUserName){
-                    channel.get()->leave(user);
-                    fromUser.get()->sendString("User was kicked from channel");
-                    return;
+    if((fromUser.get()->getLevel()=="channelop")||(fromUser.get()->getLevel()=="user")){
+        fromUser.get()->sendString("ERROR: you do not have sufficient privileges to kick user: " + kickUserName);
+        return;
+    }else {
+
+        for (std::shared_ptr<smak::Channel> channel : serverState->getChannels()) {
+            if (channel.get()->getName() == channelName) {
+                for (std::shared_ptr<smak::User> user : channel.get()->getUsers()) {
+                    if (user.get()->getName() == kickUserName) {
+                        channel.get()->leave(user);
+                        fromUser.get()->sendString("User was kicked from channel");
+                        return;
+                    }
                 }
             }
         }
+
+        fromUser.get()->sendString("Could not find any user named: " + kickUserName + " in channel: " + channelName);
     }
-    fromUser.get()->sendString("Could not find any user named: " + kickUserName + " in channel: " + channelName);
 }
 
 void smak::netController::opKill(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -402,14 +395,19 @@ void smak::netController::opKill(const rapidjson::Document &jsonDom, std::shared
     assert(jsonDom[F_NAME].IsString());
     killUserName = jsonDom[F_NAME].GetString();
 
-    for(std::shared_ptr<smak::User> user : serverState->getUsers()){
-        if (user.get()->getName() == killUserName){
-            user.get()->sendString("You have been removed from the server.");
-            user.get()->safeDisconnect();
-            return;
+    if((fromUser.get()->getLevel()=="channelop")||(fromUser.get()->getLevel()=="user")){
+        fromUser.get()->sendString("ERROR: you do not have sufficient privileges to kill user: " + killUserName);
+        return;
+    }else {
+        for (std::shared_ptr<smak::User> user : serverState->getUsers()) {
+            if (user.get()->getName() == killUserName) {
+                user.get()->sendString("You have been removed from the server.");
+                user.get()->safeDisconnect();
+                return;
+            }
         }
+        fromUser.get()->sendString("Could not find user: " + killUserName);
     }
-    fromUser.get()->sendString("Could not find user: " + killUserName);
 }
 
 void smak::netController::setChannelLock(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser, bool lockState) {
@@ -419,6 +417,7 @@ void smak::netController::setChannelLock(const rapidjson::Document &jsonDom, std
 
     if(fromUser.get()->getLevel()=="user"){
         fromUser.get()->sendString("Could not set channel lock for: " + channelName + " You do not have the correct permissions");
+        return;
     }
 
     else {
@@ -455,21 +454,25 @@ void smak::netController::opInvite(const rapidjson::Document &jsonDom, std::shar
     assert(jsonDom.HasMember(F_NAME));
     assert(jsonDom[F_NAME].IsString());
     std::string inviteUserName = jsonDom[F_NAME].GetString();
+
     // get the channel to invite them to
     assert(jsonDom.HasMember(F_CHANNEL));
     assert(jsonDom[F_CHANNEL].IsString());
     std::string channelName = jsonDom[F_CHANNEL].GetString();
 
+    bool found = false;
+
     std::shared_ptr<smak::User> inviteUser = make_shared<smak::User>(nullptr);
     for(auto user : serverState->getUsers()){
         if (user.get()->getName() == inviteUserName){
             inviteUser = make_shared<smak::User>(*user.get());
+            found = true;
             break;
         }
     }
-    // TODO: Make this not die with bad usernames
-    if (inviteUser.get() == nullptr){
-        fromUser.get()->sendString("Could not find user: " + inviteUserName);
+
+    if (!found){
+        fromUser.get()->sendString("ERROR: Could not find user: " + inviteUserName + " unable to invite to channel");
         return;
     }
 
@@ -477,11 +480,11 @@ void smak::netController::opInvite(const rapidjson::Document &jsonDom, std::shar
         if(channel.get()->getName() == channelName){
             channel.get()->inviteUser(inviteUser);
             inviteUser.get()->sendString("You've been invited to channel: " + channelName);
-            fromUser.get()->sendString("Invited user: " + inviteUserName + " to channel: " + channelName);
+            fromUser.get()->sendString("Successfully invited user: " + inviteUserName + " to channel: " + channelName);
             return;
         }
     }
-    fromUser.get()->sendString("Could not find channel: " + channelName);
+    fromUser.get()->sendString("ERROR: Could not find channel: " + channelName);
 }
 
 void smak::netController::opRules(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -526,15 +529,17 @@ void smak::netController::opList(const rapidjson::Document &jsonDom, std::shared
 
     auto existingChannels = serverState->getChannels();
     for (auto channel : existingChannels) {
+        std::string isInvite = "No";
+        if(channel.get()->isInviteOnly()) isInvite = "Yes";
 
-        channelName.append("Name:" +channel.get()->getName() + " Topic: ");
+        channelName.append("Name:" +channel.get()->getName() + ", Is invite only? " + isInvite + ", Topic: ");
         if(channel.get()->getTopic()==""){
-            channelName.append("[topic has not been set for this channel - topic can be set using OP code TOPIC]\n");
+            channelName.append("[NO TOPIC - topic can be set using OP code TOPIC]\n");
         }else{channelName.append("[" +channel.get()->getTopic()+"]\n");
         }
-
-        fromUser.get()->sendString(channelName);
     }
+    fromUser.get()->sendString(channelName);
+
 }
 
 void smak::netController::opPart(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -570,12 +575,99 @@ void smak::netController::opIson(const rapidjson::Document &jsonDom, std::shared
     for (auto users : serverState->getUsers()){
         if(users.get()->getName()==name){
             found = true;
+            break;
         }
     }
 
     if(found){fromUser.get()->sendString("User: "+name+" is currently on the server: "+serverState->getName());}
     else {fromUser.get()->sendString("User: "+name+" is not a user listed on the server: "+serverState->getName());}
 
+}
+
+void smak::netController::opSilence(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string silenceUserName;
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    silenceUserName = jsonDom[F_NAME].GetString();
+
+    if((fromUser.get()->getLevel()=="channelop")||(fromUser.get()->getLevel()=="user")){
+        fromUser.get()->sendString("ERROR: you do not have sufficient privileges to SILENCE/BAN user: " + silenceUserName);
+        return;
+    }else {
+        for (std::shared_ptr<smak::User> user : serverState->getUsers()) {
+            if (user.get()->getName() == silenceUserName) {
+
+                if(user.get()->isBanned()){ //remove existing ban
+                    user.get()->setBan(false);
+                    user.get()->sendString("Ban has been lifted on posting in channels or private messaging users");
+                    fromUser.get()->sendString("Ban has been removed for User: "+user.get()->getName());
+                    return;
+                }
+
+                user.get()->sendString("You have been currently banned from posting in channels or private messaging users");
+                fromUser.get()->sendString("User: "+user.get()->getName()+ " has been banned - To unban use OP code SILENCE with the same username");
+                user.get()->setBan(true);
+                return;
+            }
+        }
+        fromUser.get()->sendString("Could not find user: " + silenceUserName +" unable to ban");
+    }
+}
+
+void smak::netController::opPass(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    fromUser.get()->sendString("Your password used to be: " + fromUser.get()->getPassword());
+
+    std::string newPass;
+    assert(jsonDom.HasMember(F_MESSAGE));
+    assert(jsonDom[F_MESSAGE].IsString());
+    newPass = jsonDom[F_MESSAGE].GetString();
+
+    fromUser.get()->setPassword(newPass);
+
+    fromUser.get()->sendString("Your password is now: " + fromUser.get()->getPassword());
+}
+
+void smak::netController::opNotice(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    std::string userName = jsonDom[F_NAME].GetString();
+
+    assert(jsonDom.HasMember(F_MESSAGE));
+    assert(jsonDom[F_MESSAGE].IsString());
+
+    if(fromUser.get()->isBanned()){
+        fromUser.get()->sendString("ERROR: cannot send NOTICE message(s) while banned on server");
+        return;
+    }
+
+    std::string message = "[NOTICE] from " + fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString();
+    std::string msgWhileAway = "[NOTICE] (sent while you were AWAY) from " + fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString();
+
+    bool sent = false;
+    auto allUsers = serverState->getUsers(); //Get all the current users and try to find the one specified in passed userName
+
+    if(userName=="Anon"){
+        fromUser.get()->sendString("ERROR: Cannot send a NOTICE to anonymous users who have not provided a username or nickname");
+        return;
+    }
+    else{
+        for (auto user : allUsers){
+            if(user.get()->getName() == userName){
+                if(user.get()->getAwayMsg()!="here"){ //If the desired end user has a non empty AWAY string and has not come back to the keyboard
+                    user.get()->sendString(msgWhileAway);
+                }
+                else{user.get()->sendString(message);} //sending like normal because they are not currently AWAY
+
+                sent = true;
+                break;
+            }
+        }
+        if (!sent){
+
+            throw std::string("ERROR: Could not send NOTICE message to specified user: " + userName + " This user does not exist on the server");
+
+        }
+    }
 }
 
 

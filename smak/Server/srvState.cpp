@@ -236,7 +236,7 @@ std::string smak::srvState::getStartTime() {
 
 void smak::srvState::writeFiles() {
 
-    std::string userDet = "USER_LIST at time: ["+getTime()+"] ";
+    std::string userDet = "USER_LIST at time: ["+getTime()+"] \n";
     for (auto user: users){
         userDet.append("User_Name: "+user->getName());
         userDet.append(" User_Password: "+user->getPassword());
@@ -249,7 +249,7 @@ void smak::srvState::writeFiles() {
     serverState.userLogFile << userDet <<std::endl; //46 spaces to line up formatting
 
 
-    std::string channelDet = "CHANNEL_LIST at time: ["+getTime()+"] ";
+    std::string channelDet = "CHANNEL_LIST at time: ["+getTime()+"] \n";
     if(channelList.size()==0){
         channelDet.append("-No active channels at this time-");
     }
@@ -270,7 +270,18 @@ void smak::srvState::writeFiles() {
     serverState.channelLogFile << channelDet << std::endl;
 
 
-    //TODO: write to banned user file log for server
+    std::string userBan = "USER_BAN at time: ["+getTime()+"] \n";
+
+    for(auto user: users){
+        if(user.get()->isBanned()){
+
+            userBan.append("User_Name: "+user->getName());
+            userBan.append(" User_Password: "+user->getPassword());
+            userBan.append(" User_Level: "+user->getLevel() + "\n");
+
+        }
+    }
+    serverState.banUsersFile << userBan << std::endl;
 
 }
 

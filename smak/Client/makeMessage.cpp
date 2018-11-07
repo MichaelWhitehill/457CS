@@ -35,7 +35,6 @@ std::string makeMessage::INITIAL_SETTINGS(std::string name, std::string password
 
 }
 
-
 std::string makeMessage::MSG() {
 
     std::string json = "{\"OP\":\"MSG\"}";
@@ -91,7 +90,7 @@ std::string makeMessage::INVITE() {
     rapidjson::Document d;
     d.Parse(json.c_str());
 
-    std::cout << "Please enter the nickname to INVITE: " << std::endl;
+    std::cout << "Please enter the name to INVITE: " << std::endl;
     std::string nick;
     std::getline(std::cin, nick);
     std::cout << "Please enter the channel name to INVITE: " << nick << " to" << std::endl;
@@ -100,7 +99,7 @@ std::string makeMessage::INVITE() {
 
     rapidjson::Value contact;
     contact = StringRef(nick.c_str());
-    d.AddMember("nickname", contact, d.GetAllocator());
+    d.AddMember("name", contact, d.GetAllocator());
 
     rapidjson::Value val;
     val = StringRef(channel.c_str());
@@ -165,7 +164,24 @@ std::string makeMessage::KICK() {
 }
 
 std::string makeMessage::KILL() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"KILL\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter the client to KILL: " << std::endl;
+    std::string client;
+    std::getline(std::cin, client);
+
+    rapidjson::Value contact;
+    contact = StringRef(client.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+
 }
 
 std::string makeMessage::KNOCK() {
@@ -174,13 +190,32 @@ std::string makeMessage::KNOCK() {
 
 }
 
-std::string makeMessage::NICK() {
-    //This command necessitates a completely new field nickname vs username/password
-    return std::__cxx11::string();
-}
 
 std::string makeMessage::NOTICE() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"NOTICE\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter the user to send NOTICE to: " << std::endl;
+    std::string user;
+    std::getline(std::cin, user);
+    std::cout << "Please enter the message to user: " << user << std::endl;
+    std::string msg;
+    std::getline(std::cin, msg);
+
+    rapidjson::Value contact;
+    contact = StringRef(user.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    rapidjson::Value val;
+    val = StringRef(msg.c_str());
+    d.AddMember("message", val, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::PART() {
@@ -215,7 +250,23 @@ std::string makeMessage::OPER() {
 }
 
 std::string makeMessage::PASS() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"PASS\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::string name;
+    std::cout << "Please enter your new password: " << std::endl;
+    std::getline(std::cin, name);
+
+    rapidjson::Value contact;
+    contact = StringRef(name.c_str());
+    d.AddMember("message", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::PRIVMSG() {
@@ -247,8 +298,6 @@ std::string makeMessage::PRIVMSG() {
 
     return buffer.GetString();
 }
-
-
 
 std::string makeMessage::SETNAME() {
     std::string json = "{\"OP\":\"SETNAME\"}";
@@ -299,9 +348,6 @@ std::string makeMessage::TOPIC() {
     return buffer.GetString();
 }
 
-std::string makeMessage::USER() { //This is implemented through SET method
-    return std::__cxx11::string();
-}
 
 std::string makeMessage::USERHOST() {
     return std::__cxx11::string();
@@ -384,6 +430,25 @@ std::string makeMessage::UNLOCK() {
     return buffer.GetString();
 }
 
+std::string makeMessage::SILENCE() {
+    std::string json = "{\"OP\":\"SILENCE\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::string name;
+    std::cout << "Please enter the name to SILENCE/BAN: " << std::endl;
+    std::getline(std::cin, name);
+
+    rapidjson::Value contact;
+    contact = StringRef(name.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
+}
 
 
 //ALL THE BELOW METHODS CAN BE PUT ALL INTO ONE METHOD - just pass a JSON string and populate the OP field
@@ -404,6 +469,8 @@ std::string makeMessage::PARSE(std::string passedOP) {
 
     return buffer.GetString();
 }
+
+
 
 
 
