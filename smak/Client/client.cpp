@@ -493,6 +493,14 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NOTICE" << temp << std::endl;
                     break;
                 }
+                case WALLOPS: {
+                    auto temp = makeMessage::WALLOPS();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in NOTICE");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NOTICE" << temp << std::endl;
+                    break;
+                }
 
 
 

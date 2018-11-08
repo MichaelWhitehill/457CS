@@ -379,7 +379,23 @@ std::string makeMessage::ISON() {
 }
 
 std::string makeMessage::WALLOPS() {
-    return std::__cxx11::string();
+    std::string json = "{\"OP\":\"WALLOPS\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
+
+    std::cout << "Please enter a message to broadcast: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value val;
+    val = StringRef(channel.c_str());
+    d.AddMember("message", val, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::WHO() {
