@@ -34,6 +34,7 @@
 #define OP_PASS "PASS"
 #define OP_NOTICE "NOTICE"
 #define OP_WALLOPS "WALLOPS"
+#define OP_WHO "WHO"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -140,6 +141,8 @@ namespace smak{
         void opNotice(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
         void opWallops(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opWho(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
     };
 }

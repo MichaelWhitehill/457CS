@@ -102,6 +102,9 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_WALLOPS){
             opWallops(jsonDom, fromUser);
         }
+        else if (op == OP_WHO) {
+            opWho(jsonDom, fromUser);
+        }
 
 
 
@@ -685,6 +688,16 @@ void smak::netController::opWallops(const rapidjson::Document &jsonDom, std::sha
     }
     fromUser.get()->sendString("You do not have the permissions (either sysop, or admin) to broadcast a message");
 
+
+}
+
+void smak::netController::opWho(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    std::string retString;
+    for (auto user : serverState->getUsers()){
+        retString += user.get()->getName() + ", ";
+    }
+    retString = retString.substr(0, retString.length()-2); // Get rid of the ", "
+    fromUser.get()->sendString("The user list is: " + retString);
 
 }
 

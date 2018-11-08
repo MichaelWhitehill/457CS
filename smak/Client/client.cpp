@@ -498,7 +498,15 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
                         error("ERROR writing to socket in NOTICE");
-                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NOTICE" << temp << std::endl;
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "WALLOPS" << temp << std::endl;
+                    break;
+                }
+                case WHO:{
+                    auto temp = makeMessage::PARSE("WHO");
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in QUIT");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "WHO: " << temp << std::endl;
                     break;
                 }
 
