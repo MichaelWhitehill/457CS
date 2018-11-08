@@ -99,6 +99,9 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_NOTICE){
             opNotice(jsonDom, fromUser);
         }
+        else if (op == OP_WALLOPS){
+            opWallops(jsonDom, fromUser);
+        }
 
 
 
@@ -668,6 +671,21 @@ void smak::netController::opNotice(const rapidjson::Document &jsonDom, std::shar
 
         }
     }
+}
+
+void smak::netController::opWallops(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+
+    if (fromUser.get()->getLevel() == "admin" or fromUser.get()->getLevel() == "sysop"){
+        assert(jsonDom.HasMember(F_MESSAGE));
+        assert(jsonDom[F_MESSAGE].IsString());
+        std::string message = fromUser.get()->getName() + ": " + jsonDom[F_MESSAGE].GetString(); //now we know who is saying what in the channel
+        fromUser.get()->sendString("Broadcasting message");
+        broadcastMessage(message);
+        return;
+    }
+    fromUser.get()->sendString("You do not have the permissions (either sysop, or admin) to broadcast a message");
+
+
 }
 
 
