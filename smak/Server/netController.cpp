@@ -107,6 +107,9 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
         else if (op == OP_WHO) {
             opWho(jsonDom, fromUser);
         }
+        else if (op == OP_DIE){
+            opDie(jsonDom, fromUser);
+        }
 
 
 
@@ -727,11 +730,28 @@ void smak::netController::opWho(const rapidjson::Document &jsonDom, std::shared_
     //TODO: finish name search - name should be searched on partial match of userName passed to return all matching users
 
     for (auto user : serverState->getUsers()){
+        if (user.get()->getName().size() < userName.size())
+            continue;
+        if (user.get()->getName().substr(0, userName.size()) != userName)
+            continue;
+
         retString += user.get()->getName() + ", ";
     }
     retString = retString.substr(0, retString.length()-2); // Get rid of the ", "
-    fromUser.get()->sendString("The user list is: " + retString);
+    fromUser.get()->sendString("The user list beginning with the given name is: " + retString);
 
+}
+
+void smak::netController::opDie(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
+    for(auto user : serverState->getUsers()){
+        user.get()->sendString("Server is shutting down. You will be disconnected.");
+        user.get()->safeDisconnect();
+    }
+    serverState->setReady(false);
+}
+
+bool smak::netController::isReady() {
+    return serverState->isReady();
 }
 
 

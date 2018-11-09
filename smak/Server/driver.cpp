@@ -37,7 +37,7 @@ int cclient(const std::shared_ptr<smak::User> &user,int id, smak::netController 
         if (user.get()->disconnect())
             cont = false;
 
-        if (msg.substr(0,12) == "SERVER_CLOSE") // TODO: I don't know what this does, but it doesn't work
+        if (!(netCon.isReady())) // TODO: I don't know what this does, but it doesn't work
         {
             ready = false;
             cont = false;
@@ -69,8 +69,6 @@ int smak::driver::driverMain(int argc, char **argv)
     mysocket.listenSocket();  //Listen for incoming client connections
     std::cout << "Waiting to Accept Socket\n" << std::endl;
     int id = 0;
-
-
 
     //TODO: call create function in srvState to create fresh files for the new server
 

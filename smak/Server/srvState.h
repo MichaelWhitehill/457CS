@@ -80,6 +80,8 @@ namespace smak{
         std::string getStartTime();
         std::string getRules();
         std::string getVersion();
+        bool isReady();
+        void setReady(bool r) {ready = r;}
 
 
 
@@ -94,6 +96,7 @@ namespace smak{
         std::vector<shared_ptr<smak::Channel>> channelList;
         std::string chatLog;
         struct serverInfo{};
+        bool ready;
     };
 }
 

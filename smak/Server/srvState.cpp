@@ -21,6 +21,7 @@ auto t = time(NULL);
 //Constructor:
 smak::srvState::srvState(std::vector<std::unique_ptr<std::thread>> *threadList_p, std::string confPath) {
     this->threadList_p = threadList_p;
+    ready = true;
 
     if(fileExists(confPath)&&!confPath.empty()){
         //server config file is good and can be be opened to read
@@ -291,6 +292,10 @@ std::string smak::srvState::getRules() {
 
 std::string smak::srvState::getVersion() {
     return serverState.version;
+}
+
+bool smak::srvState::isReady() {
+    return ready;
 }
 
 

@@ -35,6 +35,7 @@
 #define OP_NOTICE "NOTICE"
 #define OP_WALLOPS "WALLOPS"
 #define OP_WHO "WHO"
+#define OP_DIE "DIE"
 
 #define F_CHANNEL "channel"
 #define F_NAME "name"
@@ -68,6 +69,8 @@ namespace smak{
          * @param closedClient
          */
         void closeUserConnection(std::shared_ptr<smak::User> userToClose);
+
+        bool isReady();
 
     private:
         // Should contain all generic info and list of connections
@@ -143,6 +146,8 @@ namespace smak{
         void opWallops(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
         void opWho(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
+
+        void opDie(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser);
 
     };
 }
