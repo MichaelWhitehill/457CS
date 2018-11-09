@@ -60,7 +60,7 @@ int client::clientMain(int argc, char *argv[])
 
         else if(parse[0]=="-u"){ //username may contain spaces
             for (int i =1; i<parse.size();i++) {
-                clientState.userName.append(parse[i]+" ");
+                clientState.userName.append(parse[i]);
             }
         }
         else if(parse[0]=="-p"){clientState.port = stoi(parse[1]);}
@@ -205,6 +205,9 @@ void client::writeSock(int sockFd, const int* disconnect) {
     if((clientState.password == "@") && (!clientState.userName.empty())){//user has set a username but has not set a password - not allowed
         error("ERROR: registered users with a username must provide a password at login");
     }
+    if(clientState.level.empty()){
+        clientState.level = "user";
+    }
     if((found>0) && (clientState.password.length()!=1)){
         error("ERROR: non empty passwords cannot contain the '@' symbol");
     }
@@ -215,28 +218,35 @@ void client::writeSock(int sockFd, const int* disconnect) {
             error("ERROR writing to socket in INITIAL_SETTINGS");
     }
 
+    //convert input string to uppercase:
+
+
     while(true){
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
         if(*disconnect != 0)
             return;
 
-        std::cout<<"\nPlease enter the OP code: ";
+        std::cout<<"\n(Use OP code QUIT to exit) \nPlease enter the OP code:\n\n";
         std::getline(std::cin, input);
-        //input += "\n";
         input = std::regex_replace(input, std::regex("^ +| +$|( ) +"), "$1"); //Trim any trailing or leading whitespace
-       // std::transform(input.begin(), input.end(), input.begin(),std::toupper(input));
 
-        auto it = mapString.find(input);
-        if(input.empty() || it == mapString.end()){error("ERROR: User input was invalid");}
+        auto temp = input.c_str();
+        std::string create;
+        for(int i=0; i<input.length(); i++){
+
+            create+=toupper(temp[i]);
+        }
+
+
+        auto it = mapString.find(create);
+        if(create.empty() || it == mapString.end()){std::cout<<"ERROR: User input was invalid please enter a valid OP code, type HELP for usage"<<std::endl;}
         else{
 
             switch(it->second){
 
                 case HELP: {
                     std::cout
-                            << "Valid client operations are as follows: HELP,JSON,AWAY,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,"
-                               "OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS\n Detailed use of each of these ops is forthcoming but will not be written today"
-                            << std::endl;
+                            << "Valid client operations are as follows: HELP,JSON,MSG,AWAY,INFO,INVITE,JOIN,KICK,KILL,KNOCK,NICK,NOTICE,PART,OPER,PASS,PRIVMSG,QUIT,SETNAME,TOPIC,USER,USERHOST,USERIP,USERS,WALLOPS,WHO,WHOIS,PING,TIME,RULES,VERSION, LOCK, UNLOCK,LIST, ISON, SILENCE\n See README for detailed usage instructions of each code" << std::endl;
                     break;
                 }
 
@@ -476,6 +486,15 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     break;
                 }
 
+                case KNOCK:{
+                    auto temp = makeMessage::KNOCK();
+                    errNo = write(sockFd, temp.c_str(), temp.size());
+                    if (errNo < 0)
+                        error("ERROR writing to socket in KNOCK");
+                    clientState.logFileWrite << "[" << getTime() << "] SENT: " << "KNOCK" << temp << std::endl;
+                    break;
+                }
+
                 case NICK:{
                     auto temp = makeMessage::SETNAME();
                     errNo = write(sockFd, temp.c_str(), temp.size());
@@ -493,19 +512,21 @@ void client::writeSock(int sockFd, const int* disconnect) {
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "NOTICE" << temp << std::endl;
                     break;
                 }
+
                 case WALLOPS: {
                     auto temp = makeMessage::WALLOPS();
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
-                        error("ERROR writing to socket in NOTICE");
+                        error("ERROR writing to socket in WALLOPS");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "WALLOPS" << temp << std::endl;
                     break;
                 }
+
                 case WHO:{
-                    auto temp = makeMessage::PARSE("WHO");
+                    auto temp = makeMessage::WHO();
                     errNo = write(sockFd, temp.c_str(), temp.size());
                     if (errNo < 0)
-                        error("ERROR writing to socket in QUIT");
+                        error("ERROR writing to socket in WHO");
                     clientState.logFileWrite << "[" << getTime() << "] SENT: " << "WHO: " << temp << std::endl;
                     break;
                 }
@@ -522,7 +543,7 @@ void client::writeSock(int sockFd, const int* disconnect) {
 
         }
 
-        errNo = write(sockFd, input.c_str(), input.size());
+        errNo = write(sockFd, create.c_str(), create.size());
         if (errNo < 0)
             error("ERROR writing to socket");
     }

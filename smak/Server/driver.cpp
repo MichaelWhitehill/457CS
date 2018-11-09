@@ -67,7 +67,7 @@ int smak::driver::driverMain(int argc, char **argv)
     std::cout << "Listening Socket" << std::endl;
     // TODO: Err check. Use main::Error
     mysocket.listenSocket();  //Listen for incoming client connections
-    std::cout << "Waiting to Accept Socket" << std::endl;
+    std::cout << "Waiting to Accept Socket\n" << std::endl;
     int id = 0;
 
 

@@ -186,10 +186,25 @@ std::string makeMessage::KILL() {
 
 std::string makeMessage::KNOCK() {
 
+    std::string json = "{\"OP\":\"KNOCK\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
 
+    std::cout << "Please enter the channel you would like to be invited to: " << std::endl;
+    std::string channel;
+    std::getline(std::cin, channel);
+
+    rapidjson::Value val;
+    val = StringRef(channel.c_str());
+    d.AddMember("channel", val, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 
 }
-
 
 std::string makeMessage::NOTICE() {
     std::string json = "{\"OP\":\"NOTICE\"}";
@@ -271,8 +286,6 @@ std::string makeMessage::PASS() {
 
 std::string makeMessage::PRIVMSG() {
 
-    //should be a check for if the recipient is on the channel you are on? or just send to any user anywhere
-
     std::string json = "{\"OP\":\"PRIVMSG\"}";
     rapidjson::Document d;
     d.Parse(json.c_str());
@@ -348,15 +361,6 @@ std::string makeMessage::TOPIC() {
     return buffer.GetString();
 }
 
-
-std::string makeMessage::USERHOST() {
-    return std::__cxx11::string();
-}
-
-std::string makeMessage::USERIP() {
-    return std::__cxx11::string();
-}
-
 std::string makeMessage::ISON() {
 
     std::string json = "{\"OP\":\"ISON\"}";
@@ -399,11 +403,23 @@ std::string makeMessage::WALLOPS() {
 }
 
 std::string makeMessage::WHO() {
-    return std::__cxx11::string();
-}
+    std::string json = "{\"OP\":\"WHO\"}";
+    rapidjson::Document d;
+    d.Parse(json.c_str());
 
-std::string makeMessage::WHOIS() {
-    return std::__cxx11::string();
+    std::string name;
+    std::cout << "Please enter the name to query: (enter a partial username to search all current users) " << std::endl;
+    std::getline(std::cin, name);
+
+    rapidjson::Value contact;
+    contact = StringRef(name.c_str());
+    d.AddMember("name", contact, d.GetAllocator());
+
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    d.Accept(writer);
+
+    return buffer.GetString();
 }
 
 std::string makeMessage::LOCK() {

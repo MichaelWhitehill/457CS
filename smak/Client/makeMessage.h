@@ -45,15 +45,9 @@ public : static std::string SETNAME();
 
 public : static std::string TOPIC();
 
-public : static std::string USERHOST();
-
-public : static std::string USERIP();
-
 public : static std::string WALLOPS();
 
 public : static std::string WHO();
-
-public : static std::string WHOIS();
 
 public : static std::string LOCK();
 

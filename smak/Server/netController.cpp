@@ -24,9 +24,11 @@ void smak::netController::interpret(const std::string &cmd, std::shared_ptr<smak
             setInit(jsonDom, fromUser);
         }
         if (op == OP_SETNAME){
-            opSetName(jsonDom, fromUser);}
+            opSetName(jsonDom, fromUser);
+        }
         else if (op == OP_JOIN){
-            opJoin(jsonDom, fromUser);}
+            opJoin(jsonDom, fromUser);
+        }
         else if (op == OP_MSG){
             opMsg(jsonDom, fromUser);
         }
@@ -120,7 +122,6 @@ smak::netController::netController(srvState* state) {
 }
 
 
-//TODO: is this method used anymore? - can it be reused for WALLOPS?
 void smak::netController::broadcastMessage(const std::string &toBroadcast) {
     std::vector<std::shared_ptr<User>> users = serverState->getUsers();
     for (std::shared_ptr<User> user : users){
@@ -212,7 +213,8 @@ void smak::netController::opMsg(const rapidjson::Document& jsonDom, std::shared_
         }
     }
     if (!sent){
-        throw std::string("ERROR: Could not send chat message to specified channel: " + channelName);
+        fromUser.get()->sendString("ERROR: Could not send chat message to specified channel: " + channelName);
+        return;
     }
 
 }
@@ -254,11 +256,13 @@ void smak::netController::opPrivMsg(const rapidjson::Document &jsonDom, std::sha
             break;
         }
     }
-    if (!sent){
-
-        throw std::string("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
 
     }
+
+    if (!sent){
+
+        fromUser.get()->sendString("ERROR: Could not send PRVMSG message to specified user: " + userName + " This user does not exist on the server");
+        return;
     }
 
 }
@@ -347,7 +351,7 @@ void smak::netController::opUsers(const rapidjson::Document &jsonDom, std::share
         std::string userList = "All current users on server: \n\n";
 
         for(auto specUser: serverState->getUsers()){
-            std::string user = "Name: "+specUser->getName()+" ,Level: "+specUser->getLevel();
+            std::string user = "Name: "+specUser->getName()+", Level: "+specUser->getLevel();
             if(specUser->getAwayMsg()!="here"){user.append(" -Currently AWAY");}
             userList.append(user+"\n");
         }
@@ -442,16 +446,23 @@ void smak::netController::opKnock(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom.HasMember(F_CHANNEL));
     assert(jsonDom[F_CHANNEL].IsString());
     std::string channelName = jsonDom[F_CHANNEL].GetString();
+
     for(auto channel : serverState->getChannels()){
         if (channel.get()->getName() == channelName){
-            for (std::shared_ptr<smak::User> user  : channel.get()->getUsers()){
+
+            if(!channel.get()->isInviteOnly()){
+                fromUser.get()->sendString("ERROR: this channel is not currently locked, join this channel by using JOIN command for channel:  " + channelName);
+                return;
+            }
+
+            for (auto user  : channel.get()->getUsers()){
                 user.get()->sendString(fromUser.get()->getName() + " would like to join: " + channelName);
             }
-            fromUser.get()->sendString("Knocks sent to users of channel:  " + channelName);
+            fromUser.get()->sendString("Knock(s) sent to users of channel:  " + channelName);
             return;
         }
     }
-    fromUser.get()->sendString("Error knocking on channel");
+    fromUser.get()->sendString("Error knocking on channel, "+ channelName+ " does not exist");
 
 }
 
@@ -514,19 +525,28 @@ void smak::netController::opTopic(const rapidjson::Document &jsonDom, std::share
     assert(jsonDom[F_CHANNEL].IsString());
     channelName = jsonDom[F_CHANNEL].GetString();
 
-    bool found = false;
+    if(fromUser.get()->getLevel()!="channelop"){
+        {fromUser.get()->sendString("ERROR: Unable to set TOPIC for channel: "+channelName+ " you are not a channel operator");
+        return;
+        }
+    }else {
 
-    auto existingChannels = serverState->getChannels();
-    for (auto channel : existingChannels) {
-        if (channel.get()->getName() == channelName) {
-            channel.get()->setTopic(topic);
-            found = true;
+        bool found = false;
+
+        auto existingChannels = serverState->getChannels();
+        for (auto channel : existingChannels) {
+            if (channel.get()->getName() == channelName) {
+                channel.get()->setTopic(topic);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) { fromUser.get()->sendString("ERROR: Unable to find selected channel: " + channelName); }
+        else {
+            fromUser.get()->sendString("Channel: " + channelName + " topic has successfully been set to: " + topic);
         }
     }
-
-    if(!found){fromUser.get()->sendString("ERROR: Unable to find selected channel: "+channelName);}
-    else{fromUser.get()->sendString("Channel: "+channelName+" topic has successfully been set to: "+topic);}
-
 }
 
 void smak::netController::opList(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -621,16 +641,23 @@ void smak::netController::opSilence(const rapidjson::Document &jsonDom, std::sha
 }
 
 void smak::netController::opPass(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
-    fromUser.get()->sendString("Your password used to be: " + fromUser.get()->getPassword());
 
-    std::string newPass;
-    assert(jsonDom.HasMember(F_MESSAGE));
-    assert(jsonDom[F_MESSAGE].IsString());
-    newPass = jsonDom[F_MESSAGE].GetString();
+    if(fromUser.get()->getName()=="Anon"){
+        fromUser.get()->sendString("ERROR: you are currently an unregistered user, unregistered users cannot set a password without calling SETNAME first");
+        return;
+    }
+    else {
+        fromUser.get()->sendString("Your password used to be: " + fromUser.get()->getPassword());
 
-    fromUser.get()->setPassword(newPass);
+        std::string newPass;
+        assert(jsonDom.HasMember(F_MESSAGE));
+        assert(jsonDom[F_MESSAGE].IsString());
+        newPass = jsonDom[F_MESSAGE].GetString();
 
-    fromUser.get()->sendString("Your password is now: " + fromUser.get()->getPassword());
+        fromUser.get()->setPassword(newPass);
+
+        fromUser.get()->sendString("Your password is now: " + fromUser.get()->getPassword());
+    }
 }
 
 void smak::netController::opNotice(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
@@ -670,7 +697,7 @@ void smak::netController::opNotice(const rapidjson::Document &jsonDom, std::shar
         }
         if (!sent){
 
-            throw std::string("ERROR: Could not send NOTICE message to specified user: " + userName + " This user does not exist on the server");
+            fromUser.get()->sendString("ERROR: Could not send NOTICE message to specified user: " + userName + " This user does not exist on the server");
 
         }
     }
@@ -693,6 +720,12 @@ void smak::netController::opWallops(const rapidjson::Document &jsonDom, std::sha
 
 void smak::netController::opWho(const rapidjson::Document &jsonDom, std::shared_ptr<smak::User> fromUser) {
     std::string retString;
+
+    assert(jsonDom.HasMember(F_NAME));
+    assert(jsonDom[F_NAME].IsString());
+    std::string userName = jsonDom[F_NAME].GetString();
+    //TODO: finish name search - name should be searched on partial match of userName passed to return all matching users
+
     for (auto user : serverState->getUsers()){
         retString += user.get()->getName() + ", ";
     }
