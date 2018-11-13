@@ -609,13 +609,6 @@ void client::parseArgsCmdLine(int argc, char *argv[]) {
 
 }
 
-std::vector<std::string> client::split(std::string const &input){
-        std::istringstream buffer(input);
-        std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), std::istream_iterator<std::string>());
-
-        return ret;
-    }
-
 bool client::fileExists(std::string &Filename) {
     std::ifstream file(Filename);
     if(!file)

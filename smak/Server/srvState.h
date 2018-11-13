@@ -61,13 +61,9 @@ namespace smak{
          */
         const std::string& getChatLog();
 
-        //void parseArgsCmdLine(int argc, char *argv[]);
-
         std::string getTime();
 
         bool fileExists(std::string &Filename);
-
-        std::vector<std::string> split(std::string const &input);
 
         void banFileOpen();
         void userLogFileOpen();
@@ -86,8 +82,6 @@ namespace smak{
 
 
     private:
-        //TODO: Add server rules as string (maybe?)
-
         // maintains list of all connected users
         std::vector<std::shared_ptr<User>> users;
         // using a pointer for the threadList is UNTESTED

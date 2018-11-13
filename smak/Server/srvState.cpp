@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "srvState.h"
+#include "../main.h"
 
 struct serverInfo{
     std::string ServerName, banUsersPath, userLogPath, channelLogPath, bannerPath, startTime, rules, version;
@@ -128,13 +129,6 @@ bool smak::srvState::fileExists(std::string &Filename) {
         return false;
     else
         return true;
-}
-
-std::vector<std::string> smak::srvState::split(std::string const &input) {
-    std::istringstream buffer(input);
-    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), std::istream_iterator<std::string>());
-
-    return ret;
 }
 
 void smak::srvState::banFileOpen() {
