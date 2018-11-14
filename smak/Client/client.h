@@ -56,8 +56,6 @@ public:
 
     static void parseArgsCmdLine(int argc, char *argv[]);
 
-    static std::vector<std::string> split(std::string const &input);
-
     static bool fileExists(std::string &Filename);
 
     static std::string getTime();

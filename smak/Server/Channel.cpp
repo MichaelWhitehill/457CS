@@ -8,15 +8,18 @@
 
 smak::Channel::Channel(const std::string &channelName) {
     this->channelName = channelName;
+    this->topic = "Call set topic to set a channel topic.";
     inviteOnly = false;
 }
 
 void smak::Channel::join(std::shared_ptr<smak::User> &user) {
+    // remove the user from the invited users set, if they existed in it
     invitedUsers.erase(user);
     userList.insert(user);
 }
 
 void smak::Channel::leave(std::shared_ptr<smak::User> &user) {
+    // this is safe if the user is not in the set
     userList.erase(user);
 }
 
@@ -54,7 +57,7 @@ std::string smak::Channel::getTopic() {
     return topic;
 }
 
-void smak::Channel::setTopic(std::string passed) {
+void smak::Channel::setTopic(const std::string& passed) {
     topic = passed;
 }
 
