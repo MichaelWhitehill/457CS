@@ -1,3 +1,5 @@
 .idea/
 smak/cmake-build-debug/
 smak/logs/
+smak/conf/chatclient.conf
+logs/

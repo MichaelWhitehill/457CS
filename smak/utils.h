@@ -1,4 +1,8 @@
 #include <assert.h>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <iterator>
 
 namespace cs457
 {
